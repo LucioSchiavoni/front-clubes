@@ -1,4 +1,5 @@
 import Navbar from "@/components/navbar/Navbar";
+import { useAuthStore } from "@/store/auth";
 
 
 export default function DefaultLayout({
@@ -7,9 +8,9 @@ export default function DefaultLayout({
   children: React.ReactNode;
 }) {
 
-  const user = useAuthStore((state) => state.user);
+  const user = useAuthStore((state) => state.profile);
 
-  if (!user) return null; // O redirección o loader
+  if (!user) return null; 
 
 
   return (

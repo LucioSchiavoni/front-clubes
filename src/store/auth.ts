@@ -42,7 +42,7 @@ export const useAuthStore = create(persist<State & Actions>(
             }
         },
 
-        login: async (user:any) => {
+        login: async (user: { email: string; password: string }) => {
             try {
                 const res = await loginRequest(user);
                 set({
