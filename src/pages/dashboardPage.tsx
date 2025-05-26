@@ -1,27 +1,24 @@
-
-
-import { Navigate } from 'react-router-dom';
-
-import ClubDashboard from '@/components/dashboard/ClubDashboard';
-import SocioDashboard from '@/components/dashboard/SocioDashboard';
-import AdminDashboard from '@/components/dashboard/AdminDashboard';
-import DefaultLayout from '@/layouts/default';
+import AdminDashboard from "@/components/dashboard/AdminDashboard";
+import ClubDashboard from "@/components/dashboard/ClubDashboard";
+import SocioDashboard from "@/components/dashboard/SocioDashboard";
+import DefaultLayout from "@/layouts/default";
+import { useAuthStore } from "@/store/auth";
+import { Navigate } from "react-router-dom";
 
 const DashboardPage = () => {
-  const user = useAuthStore((state) => state.user);
+  const user = useAuthStore((state) => state.profile);
 
-  if (!user) return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/" />;
 
   let dashboardContent;
-
-  switch (user.role) {
-    case 'ADMIN':
-      dashboardContent = <AdminDashboard />;
+  switch (user.rol) {
+    case "ADMIN":
+      dashboardContent = <AdminDashboard/>
       break;
-    case 'CLUB':
+    case "CLUB":
       dashboardContent = <ClubDashboard />;
       break;
-    case 'USER':
+    case "USER":
       dashboardContent = <SocioDashboard />;
       break;
     default:

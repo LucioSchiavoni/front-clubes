@@ -1,5 +1,6 @@
 import { useAuthStore } from "@/store/auth";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 const LoginForm: React.FC = () => {
@@ -8,12 +9,18 @@ const LoginForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const login = useAuthStore((state) => state.login);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
-      await login({ email, password });
+      const result = await login({ email, password });
+      if(result){
+        navigate("/dashboard");
+      }else {
+        setError("Credenciales incorrectas o error de servidor");
+      }
     } catch (err: any) {
       setError("Credenciales incorrectas o error de servidor");
     }

@@ -10,13 +10,12 @@ export default function DefaultLayout({
 
   const user = useAuthStore((state) => state.profile);
 
-  if (!user) return null; 
 
 
   return (
     <div className="layout">
-    <Navbar role={user.role} />
-    <main>{children}</main>
+    <Navbar rol={user?.rol} />
+   {children}
   </div>
   );
 }
