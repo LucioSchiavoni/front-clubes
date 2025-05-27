@@ -9,23 +9,15 @@ const DashboardPage = () => {
   const user = useAuthStore((state) => state.profile);
 
   if (!user) return <Navigate to="/" />;
+  console.log("user:", user); // <-- Agrega esto
+  console.log("user.rol:", user?.rol);
 
-  let dashboardContent;
-  switch (user.rol) {
-    case "ADMIN":
-      dashboardContent = <AdminDashboard/>
-      break;
-    case "CLUB":
-      dashboardContent = <ClubDashboard />;
-      break;
-    case "USER":
-      dashboardContent = <SocioDashboard />;
-      break;
-    default:
-      dashboardContent = <p>Rol no reconocido</p>;
-  }
 
-  return <DefaultLayout>{dashboardContent}</DefaultLayout>;
+  return <DefaultLayout>   
+    {user.rol === "ADMIN" && <AdminDashboard />}
+  {user.rol === "CLUB" && <ClubDashboard />}
+  {user.rol === "USER" && <SocioDashboard />}
+  </DefaultLayout>;
 };
 
 export default DashboardPage;
