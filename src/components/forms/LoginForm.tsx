@@ -13,17 +13,32 @@ const LoginForm: React.FC = () => {
   const setToken = useAuthStore(state => state.setToken)
   const setProfile = useAuthStore(state => state.setProfile)
 
-  
-  // Asumiendo que tienes esta acción
-
   const loginMutation = useMutation<any, any, { email: string; password: string }>({
     mutationFn: loginRequest,
     onSuccess: async (data:any) => {
-      const token = data.data.token;
-      setToken(token);
-      const isAuth = await authRequest();
-      setProfile(isAuth);
-          navigate("/dashboard");
+     
+      try {
+        if (data.success) {
+          const token = data.data.token;
+          if (!token) {
+            setError("No se recibió el token de autenticación");
+            return;
+          }
+          setToken(token);
+          const isAuth = await authRequest();
+          
+          if (isAuth.data.success) {
+            setProfile(isAuth.data);
+            navigate("/dashboard");
+          } else {
+            setError("Error al obtener el perfil del usuario");
+          }
+        } else {
+          setError("Credenciales incorrectas");
+        }
+      } catch (error) {
+        setError("Error en el proceso de autenticación");
+      }
     },
     onError: (err: any) => {
       setError(err.response?.data?.message || "Error de servidor");
@@ -33,8 +48,7 @@ const LoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    loginMutation.mutate({ email, password }); // 
+    loginMutation.mutate({ email, password });
   };
 
   return (
@@ -60,8 +74,12 @@ const LoginForm: React.FC = () => {
         />
       </div>
       {error && <p className="text-red-500">{error}</p>}
-      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-        Iniciar sesión
+      <button 
+        type="submit" 
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+        disabled={loginMutation.isPending}
+      >
+        {loginMutation.isPending ? "Iniciando sesión..." : "Iniciar sesión"}
       </button>
     </form>
   );

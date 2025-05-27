@@ -47,132 +47,144 @@ const navigationItems = [
 ]
 
 export default function AdminNavbar() {
-  const [isExpanded, setIsExpanded] = React.useState(false)
-  const [isMobileOpen, setIsMobileOpen] = React.useState(false)
-      const logout = useAuthStore((state) => state.logout);
-      const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = React.useState(true)
+  const [isMobile, setIsMobile] = React.useState(false)
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+
+  // Detectar si es móvil
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (!isMobile) {
+      setIsExpanded(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isMobile) {
+      setIsExpanded(false);
+    }
+  };
+
+  const toggleMenu = () => {
+    if (isMobile) {
+      setIsExpanded(!isExpanded);
+    }
+  };
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Mobile Menu Button */}
-      <Button
-        variant="outline"
-        size="icon"
-        className="fixed top-4 left-4 z-50 lg:hidden"
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-      >
-        {isMobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-      </Button>
-
-      {/* Mobile Overlay */}
-      {isMobileOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsMobileOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={`
-          fixed lg:relative z-50 h-full bg-card border-r border-border transition-all duration-300 ease-in-out
-          ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          ${isExpanded ? "w-80" : "w-16 lg:w-20"}
-        `}
-        onMouseEnter={() => setIsExpanded(true)}
-        onMouseLeave={() => setIsExpanded(false)}
-      >
-        {/* Logo */}
-        <div className="flex items-center justify-center h-16 border-b border-border">
-          <div className={`transition-all duration-300 ${isExpanded ? "scale-100" : "scale-75"}`}>
-            {isExpanded ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">CC</span>
-                </div>
-                <span className="font-bold text-lg">Administrador</span>
-              </div>
-            ) : (
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">CC</span>
-              </div>
-            )}
+    <div 
+      className={`h-full flex flex-col bg-card border-r border-border transition-all duration-300 overflow-hidden ${
+        isExpanded 
+          ? isMobile 
+            ? 'fixed inset-0 z-50 w-full' 
+            : 'w-64' 
+          : 'w-20'
+      }`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Logo y botón de menú móvil */}
+      <div className="flex items-center justify-between h-16 border-b border-border px-4 flex-shrink-0">
+        <div className="flex items-center space-x-2">
+          <div className={`w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center ${isMobile ? 'hidden' : 'block'}`}>
+            <span className="text-white font-bold text-sm">CC</span>
           </div>
+          {isExpanded && <span className="font-bold text-lg">Administrador</span>}
         </div>
-
-        {/* Search */}
-        {isExpanded && (
-          <div className="p-4 border-b border-border">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input placeholder="Buscar..." className="pl-10" />
-            </div>
-          </div>
-        )}
-
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-2">
-            {/* Main Navigation */}
-            <div className="space-y-1">
-              {navigationItems.map((item) => (
-                <Button
-                  key={item.title}
-                  variant="ghost"
-                  className={`
-                    w-full justify-start h-12 transition-all duration-200
-                    ${isExpanded ? "px-4" : "px-0 justify-center"}
-                    hover:bg-accent hover:text-accent-foreground
-                    group relative overflow-hidden
-                  `}
-                >
-                  <item.icon className={`h-5 w-5 ${isExpanded ? "mr-3" : ""} transition-all duration-200`} />
-                  {isExpanded && (
-                    <>
-                      <span className="flex-1 text-left">{item.title}</span>
-                      {item.badge && (
-                        <Badge variant="secondary" className="ml-auto text-xs">
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                </Button>
-              ))}
-            </div>
-
-            {/* Bottom Actions */}
-            <div className="absolute bottom-4 left-2 right-2">
-              <Separator className="mb-4" />
-              <div className="space-y-1 flex flex-col justify-center items-center">
-                <ThemeSwitch />
-                <Button
-                  variant="ghost"
-                  className={`
-                    w-full justify-start h-12
-                    ${isExpanded ? "px-4" : "px-0 justify-center"}
-                    hover:bg-accent hover:text-accent-foreground
-                  `}
-                >
-                  <Settings className={`h-5 w-5 ${isExpanded ? "mr-3" : ""}`} />
-                  {isExpanded && <span>Configuración</span>}
-                </Button>
-              </div>
-            </div>
-          </div>
-            {/* Botón de cerrar sesión */}
+        {isMobile && (
           <Button
             variant="ghost"
-            className={`
-              w-full justify-start h-12
-              ${isExpanded ? "px-4" : "px-0 justify-center"}
-              hover:bg-destructive hover:text-destructive-foreground
-            `}
+            size="icon"
+            onClick={toggleMenu}
+            className="md:hidden"
+          >
+            {isExpanded ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        )}
+      </div>
+
+      {/* Search */}
+      {isExpanded && (
+        <div className="p-4 border-b border-border flex-shrink-0">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input placeholder="Buscar..." className="pl-10" />
+          </div>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto p-4 scrollbar-none scrollbar-hide">
+        <ul className="space-y-2">
+          {navigationItems.map((item) => (
+            <li key={item.title}>
+              <Button
+                variant="ghost"
+                className={`w-full justify-start h-12 ${
+                  isExpanded ? 'px-4' : 'px-2 justify-center'
+                } hover:bg-accent hover:text-accent-foreground`}
+                onClick={() => {
+                  if (isMobile) {
+                    setIsExpanded(false);
+                  }
+                  navigate(item.href);
+                }}
+              >
+                <item.icon className="h-5 w-5" />
+                {isExpanded && (
+                  <>
+                    <span className="ml-3">{item.title}</span>
+                    {item.badge && (
+                      <Badge variant="secondary" className="ml-auto">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </>
+                )}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-border flex-shrink-0">
+        <div className="space-y-4">
+          <div className="flex items-center justify-center">
+            <ThemeSwitch />
+          </div>
+          <Button
+            variant="ghost"
+            className={`w-full justify-start h-12 ${
+              isExpanded ? 'px-4' : 'px-2 justify-center'
+            } hover:bg-accent hover:text-accent-foreground`}
+          >
+            <Settings className="h-5 w-5" />
+            {isExpanded && <span className="ml-3">Configuración</span>}
+          </Button>
+          <Button
+            variant="ghost"
+            className={`w-full justify-start h-12 ${
+              isExpanded ? 'px-4' : 'px-2 justify-center'
+            } hover:bg-destructive hover:text-destructive-foreground`}
             onClick={() => {
               logout();
               navigate("/");
             }}
           >
-            <X className={`h-5 w-5 ${isExpanded ? "mr-3" : ""}`} />
-            {isExpanded && <span>Cerrar sesión</span>}
+            <X className="h-5 w-5" />
+            {isExpanded && <span className="ml-3">Cerrar sesión</span>}
           </Button>
         </div>
       </div>

@@ -4,20 +4,42 @@ import SocioDashboard from "@/components/dashboard/SocioDashboard";
 import DefaultLayout from "@/layouts/default";
 import { useAuthStore } from "@/store/auth";
 import { Navigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const DashboardPage = () => {
   const user = useAuthStore((state) => state.profile);
+  const isAuth = useAuthStore((state) => state.isAuth);
 
-  if (!user) return <Navigate to="/" />;
-  console.log("user:", user); // <-- Agrega esto
-  console.log("user.rol:", user?.rol);
+  useEffect(() => {
+    console.log("Usuario actual:", user);
+    console.log("Estado de autenticación:", isAuth);
+  }, [user, isAuth]);
 
+  if (!isAuth || !user) {
+    console.log("Redirigiendo al login - No autenticado");
+    return <Navigate to="/" replace />;
+  }
 
-  return <DefaultLayout>   
-    {user.rol === "ADMIN" && <AdminDashboard />}
-  {user.rol === "CLUB" && <ClubDashboard />}
-  {user.rol === "USER" && <SocioDashboard />}
-  </DefaultLayout>;
+  const renderDashboard = () => {
+    const userRole = user.data?.rol;
+    switch (userRole) {
+      case "ADMIN":
+        return <AdminDashboard />;
+      case "CLUB":
+        return <ClubDashboard />;
+      case "USER":
+        return <SocioDashboard />;
+      default:
+        console.error("Rol no reconocido:", userRole);
+        return <Navigate to="/" replace />;
+    }
+  };
+
+  return (
+    <DefaultLayout>
+      {renderDashboard()}
+    </DefaultLayout>
+  );
 };
 
 export default DashboardPage;
