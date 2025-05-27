@@ -1,13 +1,15 @@
 "use client"
 
 import * as React from "react"
-import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X } from "lucide-react"
+import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X, LogOut } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ThemeSwitch } from "../theme-switch"
+import { useAuthStore } from "@/store/auth"
+import { useNavigate } from "react-router-dom"
 
 const navigationItems = [
   {
@@ -47,6 +49,8 @@ const navigationItems = [
 export default function ClubNavbar() {
   const [isExpanded, setIsExpanded] = React.useState(false)
   const [isMobileOpen, setIsMobileOpen] = React.useState(false)
+  const navigate = useNavigate()
+  const logout = useAuthStore((state) => state.logout);
 
   return (
     <div className="flex h-screen bg-background">
@@ -140,6 +144,7 @@ export default function ClubNavbar() {
               <Separator className="mb-4" />
               <div className="space-y-1 flex flex-col justify-center items-center">
                 <ThemeSwitch />
+              
                 <Button
                   variant="ghost"
                   className={`
@@ -151,6 +156,19 @@ export default function ClubNavbar() {
                   <Settings className={`h-5 w-5 ${isExpanded ? "mr-3" : ""}`} />
                   {isExpanded && <span>Configuración</span>}
                 </Button>
+                <Button
+            variant="ghost"
+            className={`w-full justify-start h-12 ${
+              isExpanded ? 'px-4' : 'px-2 justify-center'
+            } hover:bg-accent hover:text-accent-foreground`}
+            onClick={() => {
+              logout();
+              navigate("/");
+            }}
+          >
+            <LogOut className="h-5 w-5" />
+            {isExpanded && <span className="ml-3">Cerrar sesión</span>}
+          </Button>
               </div>
             </div>
           </div>
