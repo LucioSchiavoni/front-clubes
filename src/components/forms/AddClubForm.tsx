@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,10 +15,9 @@ const steps = [
   {
     id: 1,
     title: "Información del Club",
-    
     description: "Cuéntanos sobre tu club",
     icon: User,
-    fields: ["name", "email"],
+    fields: ["name"],
     required: true
   },
   {
@@ -43,7 +42,7 @@ const steps = [
     description: "¿Dónde podemos encontrarte?",
     icon: MapPin,
     fields: ["address", "phone"],
-    required: false
+    required: true
   },
 ]
 
@@ -67,78 +66,92 @@ const AddClubForm = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { profile, setProfile } = useAuthStore()
+  const queryClient = useQueryClient()
 
-  // Verificar si el usuario ya tiene un club
+
   useEffect(() => {
-    console.log('Estado actual del perfil:', profile)
     if (profile?.data?.clubId) {
-      console.log('Usuario tiene clubId:', profile.data.clubId)
       window.location.href = '/dashboard'
     }
   }, [profile])
 
   const mutation = useMutation({
     mutationFn: async (data: { formData: CreateClub; image: File | null }) => {
-      const formDataToSend = new FormData()
-      
-      // Agregar todos los campos del formulario
-      Object.entries(data.formData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formDataToSend.append(key, value.toString())
-        }
-      })
-
-      // Agregar la imagen si existe
-      if (data.image) {
-        formDataToSend.append('image', data.image)
-      }
-
-      // Enviar el formulario
-      const response = await instance.post("/club", formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-
-      console.log('Respuesta de creación del club:', response.data)
-
-      // Verificar que tenemos el ID del usuario y el ID del club
-      if (response.data?.id && profile?.data?.id) {
-        try {
-          console.log('Actualizando clubId del usuario:', {
-            userId: profile.data.id,
-            clubId: response.data.id
-          })
-          
-          const updateResponse = await updateUserClub(profile.data.id, response.data.id)
-          console.log('Respuesta de actualización del usuario:', updateResponse)
-
-          // Actualizar el perfil inmediatamente después de actualizar el clubId
-          const updatedProfile = {
-            ...profile,
-            data: {
-              ...profile.data,
-              clubId: response.data.id
-            }
+      try {
+        const formDataToSend = new FormData()
+        
+        Object.entries(data.formData).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && key !== 'email') {
+            formDataToSend.append(key, value.toString())
           }
-          console.log('Nuevo perfil a guardar:', updatedProfile)
-          setProfile(updatedProfile)
-        } catch (error) {
-          console.error('Error al actualizar el clubId del usuario:', error)
-        }
-      }
+        })
 
-      return response
+        if (profile?.data?.email) {
+          formDataToSend.append('email', profile.data.email)
+        }
+
+        if (data.image) {
+          formDataToSend.append('image', data.image)
+        }
+
+        console.log('Creando nuevo club...')
+        const clubResponse = await instance.post("/club", formDataToSend, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        })
+        
+        console.log('Respuesta completa del servidor:', clubResponse)
+        console.log('Datos del club creado:', clubResponse.data)
+
+        if (!clubResponse.data?.data?.id) {
+          console.error('No se encontró ID en la respuesta:', clubResponse.data)
+          throw new Error('No se pudo obtener el ID del club')
+        }
+
+        if (!profile?.data?.id) {
+          console.error('No se encontró ID del usuario en el perfil:', profile)
+          throw new Error('No se pudo obtener el ID del usuario')
+        }
+
+
+        const updatedUser = await updateUserClub(profile.data.id, clubResponse.data.data.id)
+
+
+
+        if (!updatedUser) {
+          throw new Error('No se pudo actualizar el usuario')
+        }
+
+        await queryClient.invalidateQueries({ queryKey: ['user'] })
+        await queryClient.invalidateQueries({ queryKey: ['club'] })
+
+        const updatedProfile = {
+          ...profile,
+          data: {
+            ...profile.data,
+            clubId: clubResponse.data.data.id,
+            club: updatedUser.club
+          }
+        }
+
+        setProfile(updatedProfile)
+
+        return clubResponse
+      } catch (error) {
+        console.error('Error en el proceso de creación:', error)
+        throw error
+      }
     },
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       if (response.data) {
-        console.log('Club creado exitosamente:', response.data)
+        console.log('Proceso completado exitosamente')
         setShowAlert(true)
         setIsComplete(true)
-        // Redirigir al dashboard después de un breve delay
-        setTimeout(() => {
-          window.location.href = '/dashboard'
-        }, 2000)
+        
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        console.log('Redirigiendo al dashboard...')
+        window.location.href = '/dashboard'
       }
     },
     onError: (error) => {
@@ -151,7 +164,6 @@ const AddClubForm = () => {
     const file = e.target.files?.[0]
     if (file) {
       setSelectedImage(file)
-      // Crear una URL de vista previa
       const reader = new FileReader()
       reader.onloadend = () => {
         setImagePreview(reader.result as string)
@@ -195,7 +207,7 @@ const AddClubForm = () => {
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    if (!formData.name || !formData.email) {
+    if (!formData.name) {
       setShowAlert(true)
       return
     }
@@ -277,16 +289,8 @@ const AddClubForm = () => {
                       placeholder="Ingresa el nombre de tu club"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Correo Electrónico *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => updateFormData("email", e.target.value)}
-                      placeholder="correo@ejemplo.com"
-                    />
+                  <div className="text-sm text-gray-500">
+                    El club utilizará tu email actual: {profile?.data?.email}
                   </div>
                 </div>
               )}
@@ -361,19 +365,21 @@ const AddClubForm = () => {
               {currentStep === 4 && (
                 <div className="space-y-4 animate-in slide-in-from-right-5 duration-300">
                   <div className="space-y-2">
-                    <Label htmlFor="address">Dirección</Label>
+                    <Label htmlFor="address">Dirección *</Label>
                     <Input
                       id="address"
+                      required
                       value={formData.address}
                       onChange={(e) => updateFormData("address", e.target.value)}
                       placeholder="Ingresa la dirección del club"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Teléfono</Label>
+                    <Label htmlFor="phone">Teléfono *</Label>
                     <Input
                       id="phone"
                       type="tel"
+                      required
                       value={formData.phone}
                       onChange={(e) => updateFormData("phone", e.target.value)}
                       placeholder="Ingresa el teléfono de contacto"

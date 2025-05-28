@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X, LogOut } from "lucide-react"
+import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X, LogOut, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { ThemeSwitch } from "../theme-switch"
 import { useAuthStore } from "@/store/auth"
 import { useNavigate } from "react-router-dom"
+import { useClub } from "@/hooks/useClub"
 
 const navigationItems = [
   {
@@ -52,7 +53,15 @@ export default function ClubNavbar() {
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout);
 
+  const { club, isLoading } = useClub()
+
+  if(isLoading){
+    return <Loader2/>
+  }
+
+
   return (
+  
     <div className="flex h-screen bg-background">
       {/* Mobile Menu Button */}
       <Button
@@ -85,13 +94,28 @@ export default function ClubNavbar() {
             {isExpanded ? (
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">CC</span>
+                {club.image ? (
+                  <img src={club.image} alt={club.name} className="w-full h-full object-cover rounded-lg"/>
+                )
+              :
+              ( <span>
+                {club.name.charAt(0)}
+              </span>)
+              }
                 </div>
                 <span className="font-bold text-lg">Club</span>
               </div>
             ) : (
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">CC</span>
+                {club.image ? (
+                  <img src={club.image} alt={club.name} className="w-full h-full object-cover rounded-lg"/>
+                )
+              :
+              ( <span>
+                {club.name.charAt(0)}
+              </span>)
+              }
+                 
               </div>
             )}
           </div>
@@ -175,5 +199,6 @@ export default function ClubNavbar() {
         </div>
       </div>
     </div>
+
   )
 }

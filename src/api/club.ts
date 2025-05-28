@@ -13,7 +13,23 @@ export const registerClub = async(data: CreateClub): Promise<ClubResponse> => {
 
 export const updateUserClub = async(userId: number, clubId: number) => {
     try {
-        const res = await instance.patch(`/users/${userId}/club`, { clubId })
+        console.log('Enviando actualización de club:', { userId, clubId })
+        const res = await instance.patch(`/user/${userId}/club`, { clubId })
+        console.log('Respuesta de actualización:', res.data)
+        if (res.data.status === 200) {
+            return res.data.data
+        } else {
+            throw new Error(res.data.message || 'Error al actualizar el club del usuario')
+        }
+    } catch (error) {
+        console.error('Error en updateUserClub:', error)
+        throw error
+    }
+}
+
+export const getClubById = async(clubId: string) => {
+    try {
+        const res = await instance.get(`/club/${clubId}`)
         return res.data;
     } catch (error) {
         console.log(error)

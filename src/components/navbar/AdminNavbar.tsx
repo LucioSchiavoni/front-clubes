@@ -1,12 +1,10 @@
-"use client"
-
 import * as React from "react"
-import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X } from "lucide-react"
+import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+
 import { ThemeSwitch } from "../theme-switch"
 import { useAuthStore } from "@/store/auth"
 import { useNavigate } from "react-router-dom"
@@ -51,6 +49,7 @@ export default function AdminNavbar() {
   const [isMobile, setIsMobile] = React.useState(false)
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
+  const { profile } = useAuthStore();
 
   // Detectar si es móvil
   React.useEffect(() => {
@@ -93,14 +92,14 @@ export default function AdminNavbar() {
       }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-    >
+    > 
       {/* Logo y botón de menú móvil */}
       <div className="flex items-center justify-between h-16 border-b border-border px-4 flex-shrink-0">
         <div className="flex items-center space-x-2">
           <div className={`w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center ${isMobile ? 'hidden' : 'block'}`}>
-            <span className="text-white font-bold text-sm">CC</span>
+            <span className="text-white font-bold">A</span>
           </div>
-          {isExpanded && <span className="font-bold text-lg">Administrador</span>}
+          {isExpanded && <span className="font-bold text-lg">{profile.name}</span>}
         </div>
         {isMobile && (
           <Button

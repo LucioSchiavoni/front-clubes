@@ -52,11 +52,11 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex justify-center items-center flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex justify-center  items-center flex-col gap-4">
       <div>
         <label>Email:</label>
         <input
-          className="rounded-md border-2 border-gray-300 p-2"
+          className="rounded-md border-2 border-gray-300 p-2 text-black"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -67,7 +67,7 @@ const LoginForm: React.FC = () => {
         <label>Contraseña:</label>
         <input
           type="password"
-          className="rounded-md border-2 border-gray-300 p-2"
+          className="rounded-md border-2 border-gray-300 p-2 text-black"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required

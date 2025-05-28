@@ -5,6 +5,7 @@ import {
   Calendar,
   Activity,
   Eye,
+  Loader2,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,7 @@ import { Separator } from "@/components/ui/separator"
 import { useAuthStore } from "@/store/auth"
 
 import AddClubForm from "../forms/AddClubForm"
+import { useClub } from "@/hooks/useClub"
 
 const featuredMetrics = [
   {
@@ -64,17 +66,36 @@ const featuredMetrics = [
 
 const ClubDashboard = () => {
   const { profile } = useAuthStore()
+  const { club, isLoading } = useClub() 
 
   // Si el usuario no tiene un club asignado, mostrar el formulario de creación
   if (!profile?.data?.clubId) {
     return <AddClubForm />
   }
 
-  // Si el usuario tiene un club asignado, mostrar el dashboard
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!club) {
+    return (
+      <div className="p-6">
+        <h2 className="text-xl font-semibold">No se encontró información del club</h2>
+      </div>
+    )
+  }
+  
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Panel del Club</h1>
+        <div>
+          <h1 className="text-2xl font-bold">{club.name}</h1>
+          <p className="text-sm text-muted-foreground">{club.address}</p>
+        </div>
         <Button variant="outline">
           <Eye className="mr-2 h-4 w-4" />
           Ver Reporte Completo
