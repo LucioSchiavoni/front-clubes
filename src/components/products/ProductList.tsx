@@ -1,0 +1,164 @@
+import { useState } from 'react'
+import { Search, Filter, MoreHorizontal, Edit, Trash2, Eye, PackagePlus } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Loader2 } from 'lucide-react'
+import type { Product } from '@/hooks/useProducts'
+
+interface ProductListProps {
+  products: Product[]
+  isLoading: boolean
+  error: string | null
+  onEdit: (product: Product) => void
+  onDelete: (id: string) => void
+  onUpdateStock: (id: string, stock: number) => void
+}
+
+export const ProductList = ({ 
+  products = [], 
+  isLoading, 
+  error,
+  onEdit,
+  onDelete,
+  onUpdateStock
+}: ProductListProps) => {
+  const [searchTerm, setSearchTerm] = useState("")
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-red-600 bg-red-50 rounded-lg">
+        Error: {error}
+      </div>
+    )
+  }
+
+  const filteredProducts = Array.isArray(products) 
+    ? products.filter(product => 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : []
+
+  return (
+    <Card className="border-green-200 shadow-lg rounded-2xl overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100">
+        <CardTitle className="text-green-800 flex items-center">
+          <PackagePlus className="h-5 w-5 mr-2" />
+          Catálogo de Productos
+        </CardTitle>
+        <CardDescription className="text-green-600">
+          Gestiona los productos de tu club cannábico
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-green-500" />
+              <Input
+                placeholder="Buscar productos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-[300px] border-green-200 focus:border-green-500 rounded-xl"
+              />
+            </div>
+            <Button variant="outline" size="sm" className="border-green-200 text-green-700 hover:bg-green-50 rounded-xl">
+              <Filter className="h-4 w-4 mr-2" />
+              Filtros
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredProducts.map((product) => (
+            <Card key={product.id} className="border-green-200 hover:shadow-xl transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="font-semibold text-lg text-green-800">{product.name}</h3>
+                    <Badge className="mt-1 bg-green-100 text-green-800 border-green-200">
+                      {product.category}
+                    </Badge>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-green-100">
+                        <MoreHorizontal className="h-4 w-4 text-green-600" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="border-green-200 rounded-xl">
+                      <DropdownMenuLabel className="text-green-800">Acciones</DropdownMenuLabel>
+                      <DropdownMenuItem 
+                        className="hover:bg-green-50"
+                        onClick={() => onEdit(product)}
+                      >
+                        <Edit className="mr-2 h-4 w-4 text-green-600" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="hover:bg-green-50">
+                        <Eye className="mr-2 h-4 w-4 text-green-600" />
+                        Ver detalles
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        className="text-red-600 hover:bg-red-50"
+                        onClick={() => onDelete(product.id)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-600">THC:</span>
+                    <span className="font-medium text-green-800">{product.thc}%</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-600">CBD:</span>
+                    <span className="font-medium text-green-800">{product.CBD}%</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-600">Precio:</span>
+                    <span className="font-medium text-green-800">€{product.price.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-600">Stock:</span>
+                    <span className="font-medium text-green-800">{product.stock}g</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+} 

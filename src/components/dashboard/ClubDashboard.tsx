@@ -1,10 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { Loader2, Users, Package, Calendar, Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, UserPlus, PackagePlus, CalendarPlus, Leaf, TrendingUp, DollarSign, Star } from 'lucide-react'
+import { useState, useEffect } from "react"
+import { Loader2, Users, Package, Calendar, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, UserPlus, PackagePlus, CalendarPlus, Leaf, TrendingUp, DollarSign, Star } from 'lucide-react'
+import "@/styles/cursor.css"
 
 import { useAuthStore } from "@/store/auth"
 import { useClub } from "@/hooks/useClub"
+import { useProducts } from "@/hooks/useProducts"
+
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -46,6 +49,9 @@ import {
 } from "@/components/ui/select"
 
 import AddClubForm from "../forms/AddClubForm"
+import { ProductList } from "@/components/products/ProductList"
+import { ProductForm } from "@/components/products/ProductForm"
+import type { Product } from "@/hooks/useProducts"
 
 // Datos de ejemplo
 const mockMembers = [
@@ -161,17 +167,99 @@ const mockReservations = [
 
 const ClubDashboard = () => {
   const { profile } = useAuthStore()
-  const { club, isLoading } = useClub()
+  const { club, isLoading: isClubLoading } = useClub()
+  const { 
+    isLoading: isProductsLoading, 
+    error: productsError,
+    getAllProducts,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    updateStock
+  } = useProducts()
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
   const [isAddProductOpen, setIsAddProductOpen] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [isEditProductOpen, setIsEditProductOpen] = useState(false)
+
+  useEffect(() => {
+    if (club?.id) {
+      loadProducts()
+    }
+  }, [club?.id])
+
+  const loadProducts = async () => {
+    const productsData = await getAllProducts()
+    setProducts(productsData)
+  }
+
+  const handleCreateProduct = async (formData: FormData) => {
+    const productData = {
+      name: formData.get('name') as string,
+      description: formData.get('description') as string,
+      price: parseFloat(formData.get('price') as string),
+      category: formData.get('category') as string,
+      thc: parseFloat(formData.get('thc') as string),
+      CBD: parseFloat(formData.get('CBD') as string),
+      stock: parseInt(formData.get('stock') as string),
+      image: formData.get('image') as File | undefined
+    }
+
+    const newProduct = await createProduct(productData)
+    if (newProduct) {
+      await loadProducts()
+      setIsAddProductOpen(false)
+    }
+  }
+
+  const handleUpdateProduct = async (formData: FormData) => {
+    if (!selectedProduct) return
+
+    const productData = {
+      id: selectedProduct.id,
+      name: formData.get('name') as string,
+      description: formData.get('description') as string,
+      price: parseFloat(formData.get('price') as string),
+      category: formData.get('category') as string,
+      thc: parseFloat(formData.get('thc') as string),
+      CBD: parseFloat(formData.get('CBD') as string),
+      stock: parseInt(formData.get('stock') as string),
+      image: formData.get('image') as File | undefined
+    }
+
+    const updatedProduct = await updateProduct(productData)
+    if (updatedProduct) {
+      await loadProducts()
+      setIsEditProductOpen(false)
+      setSelectedProduct(null)
+    }
+  }
+
+  const handleDeleteProduct = async (id: string) => {
+    const confirmed = window.confirm('¿Estás seguro de que deseas eliminar este producto?')
+    if (confirmed) {
+      const success = await deleteProduct(id)
+      if (success) {
+        await loadProducts()
+      }
+    }
+  }
+
+  const handleUpdateStock = async (id: string, newStock: number) => {
+    const updatedProduct = await updateStock(id, newStock)
+    if (updatedProduct) {
+      await loadProducts()
+    }
+  }
 
   // Si el usuario no tiene un club asignado, mostrar el formulario de creación
   if (!profile?.data?.clubId) {
     return <AddClubForm />
   }
 
-  if (isLoading) {
+  if (isClubLoading) {
     return (
       <div className="h-full flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 cannabis-cursor">
         <div className="text-center">
@@ -210,44 +298,6 @@ const ClubDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 cannabis-cursor">
-      {/* Custom Cannabis Cursor Styles */}
-      <style jsx global>{`
-  .cannabis-cursor {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg%3E%3C!-- Guante estilo Mickey Mouse --%3E%3Cpath d='M18 24c0-2 2-4 4-4s4 2 4 4v16c0 2-2 4-4 4s-4-2-4-4V24z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3Cpath d='M12 28c0-2 2-4 4-4s4 2 4 4v12c0 2-2 4-4 4s-4-2-4-4V28z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3Cpath d='M24 28c0-2 2-4 4-4s4 2 4 4v12c0 2-2 4-4 4s-4-2-4-4V28z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Pulgar --%3E%3Cpath d='M8 32c0-2 2-4 4-4s4 2 4 4v4c0 2-2 4-4 4s-4-2-4-4v-4z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Cigarro de Cannabis grande --%3E%3Cpath d='M22 8c0-1.5 1.5-2 3-2h12c1.5 0 3 0.5 3 2v4c0 1.5-1.5 2-3 2H25c-1.5 0-3-0.5-3-2V8z' fill='%23F5F5DC' stroke='%23D4A574' strokeWidth='1'/%3E%3C!-- Punta de cannabis grande y detallada --%3E%3Cpath d='M37 8h6c1.5 0 3 0.5 3 2s-1.5 2-3 2h-6V8z' fill='%2344AA44' stroke='%23228B22' strokeWidth='1'/%3E%3C!-- Detalles de la punta de cannabis --%3E%3Cpath d='M40 8c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3Cpath d='M42 8c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3C!-- Humo más visible --%3E%3Ccircle cx='46' cy='6' r='2' fill='%23E0E0E0' opacity='0.9'/%3E%3Ccircle cx='48' cy='3' r='1.5' fill='%23E0E0E0' opacity='0.7'/%3E%3Ccircle cx='45' cy='1' r='1' fill='%23E0E0E0' opacity='0.5'/%3E%3C/g%3E%3C/svg%3E") 12 12, auto;
-  }
-  
-  .cannabis-cursor-pointer {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg%3E%3C!-- Guante estilo Mickey Mouse apuntando --%3E%3Cpath d='M18 20c0-2 2-4 4-4s4 2 4 4v20c0 2-2 4-4 4s-4-2-4-4V20z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3Cpath d='M12 28c0-2 2-4 4-4s4 2 4 4v12c0 2-2 4-4 4s-4-2-4-4V28z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3Cpath d='M24 28c0-2 2-4 4-4s4 2 4 4v12c0 2-2 4-4 4s-4-2-4-4V28z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Pulgar levantado --%3E%3Cpath d='M8 26c0-2 2-4 4-4s4 2 4 4v4c0 2-2 4-4 4s-4-2-4-4v-4z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Cigarro de Cannabis grande --%3E%3Cpath d='M22 4c0-1.5 1.5-2 3-2h12c1.5 0 3 0.5 3 2v4c0 1.5-1.5 2-3 2H25c-1.5 0-3-0.5-3-2V4z' fill='%23F5F5DC' stroke='%23D4A574' strokeWidth='1'/%3E%3C!-- Punta de cannabis grande y detallada --%3E%3Cpath d='M37 4h6c1.5 0 3 0.5 3 2s-1.5 2-3 2h-6V4z' fill='%2344AA44' stroke='%23228B22' strokeWidth='1'/%3E%3C!-- Detalles de la punta de cannabis --%3E%3Cpath d='M40 4c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3Cpath d='M42 4c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3C!-- Humo más visible --%3E%3Ccircle cx='46' cy='2' r='2' fill='%23E0E0E0' opacity='0.9'/%3E%3Ccircle cx='48' cy='0' r='1.5' fill='%23E0E0E0' opacity='0.7'/%3E%3C/g%3E%3C/svg%3E") 12 12, pointer;
-  }
-  
-  .cannabis-cursor-grab {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg%3E%3C!-- Guante cerrado estilo Mickey Mouse --%3E%3Cpath d='M12 24c0-2 2-4 4-4h12c2 0 4 2 4 4v12c0 2-2 4-4 4H16c-2 0-4-2-4-4V24z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Pulgar --%3E%3Cpath d='M8 28c0-2 2-4 4-4s4 2 4 4v4c0 2-2 4-4 4s-4-2-4-4v-4z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Cigarro de Cannabis sostenido --%3E%3Cpath d='M16 20h16c1.5 0 3 0.5 3 2v2c0 1.5-1.5 2-3 2H16c-1.5 0-3-0.5-3-2v-2c0-1.5 1.5-2 3-2z' fill='%23F5F5DC' stroke='%23D4A574' strokeWidth='1'/%3E%3C!-- Punta de cannabis grande y detallada --%3E%3Cpath d='M32 20h6c1.5 0 3 0.5 3 2s-1.5 2-3 2h-6v-4z' fill='%2344AA44' stroke='%23228B22' strokeWidth='1'/%3E%3C!-- Detalles de la punta de cannabis --%3E%3Cpath d='M35 20c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3Cpath d='M37 20c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3C!-- Humo más visible --%3E%3Ccircle cx='42' cy='18' r='2' fill='%23E0E0E0' opacity='0.9'/%3E%3Ccircle cx='44' cy='15' r='1.5' fill='%23E0E0E0' opacity='0.7'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab;
-  }
-
-  /* Apply different cursors to different elements */
-  .cannabis-cursor button,
-  .cannabis-cursor a,
-  .cannabis-cursor [role="button"],
-  .cannabis-cursor .hover\\:bg-green-50,
-  .cannabis-cursor .hover\\:bg-green-100 {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg%3E%3C!-- Guante estilo Mickey Mouse apuntando --%3E%3Cpath d='M18 20c0-2 2-4 4-4s4 2 4 4v20c0 2-2 4-4 4s-4-2-4-4V20z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3Cpath d='M12 28c0-2 2-4 4-4s4 2 4 4v12c0 2-2 4-4 4s-4-2-4-4V28z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3Cpath d='M24 28c0-2 2-4 4-4s4 2 4 4v12c0 2-2 4-4 4s-4-2-4-4V28z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Pulgar levantado --%3E%3Cpath d='M8 26c0-2 2-4 4-4s4 2 4 4v4c0 2-2 4-4 4s-4-2-4-4v-4z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Cigarro de Cannabis grande --%3E%3Cpath d='M22 4c0-1.5 1.5-2 3-2h12c1.5 0 3 0.5 3 2v4c0 1.5-1.5 2-3 2H25c-1.5 0-3-0.5-3-2V4z' fill='%23F5F5DC' stroke='%23D4A574' strokeWidth='1'/%3E%3C!-- Punta de cannabis grande y detallada --%3E%3Cpath d='M37 4h6c1.5 0 3 0.5 3 2s-1.5 2-3 2h-6V4z' fill='%2344AA44' stroke='%23228B22' strokeWidth='1'/%3E%3C!-- Detalles de la punta de cannabis --%3E%3Cpath d='M40 4c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3Cpath d='M42 4c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3C!-- Humo más visible --%3E%3Ccircle cx='46' cy='2' r='2' fill='%23E0E0E0' opacity='0.9'/%3E%3Ccircle cx='48' cy='0' r='1.5' fill='%23E0E0E0' opacity='0.7'/%3E%3C/g%3E%3C/svg%3E") 12 12, pointer !important;
-  }
-
-  .cannabis-cursor input,
-  .cannabis-cursor textarea,
-  .cannabis-cursor [contenteditable="true"] {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg%3E%3C!-- Guante estilo Mickey Mouse --%3E%3Cpath d='M18 24c0-2 2-4 4-4s4 2 4 4v16c0 2-2 4-4 4s-4-2-4-4V24z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3Cpath d='M12 28c0-2 2-4 4-4s4 2 4 4v12c0 2-2 4-4 4s-4-2-4-4V28z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3Cpath d='M24 28c0-2 2-4 4-4s4 2 4 4v12c0 2-2 4-4 4s-4-2-4-4V28z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Pulgar --%3E%3Cpath d='M8 32c0-2 2-4 4-4s4 2 4 4v4c0 2-2 4-4 4s-4-2-4-4v-4z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Cigarro de Cannabis grande --%3E%3Cpath d='M22 8c0-1.5 1.5-2 3-2h12c1.5 0 3 0.5 3 2v4c0 1.5-1.5 2-3 2H25c-1.5 0-3-0.5-3-2V8z' fill='%23F5F5DC' stroke='%23D4A574' strokeWidth='1'/%3E%3C!-- Punta de cannabis grande y detallada --%3E%3Cpath d='M37 8h6c1.5 0 3 0.5 3 2s-1.5 2-3 2h-6V8z' fill='%2344AA44' stroke='%23228B22' strokeWidth='1'/%3E%3C!-- Detalles de la punta de cannabis --%3E%3Cpath d='M40 8c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3Cpath d='M42 8c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3C!-- Línea de cursor de texto --%3E%3Cline x1='46' y1='12' x2='46' y2='24' stroke='%23000000' strokeWidth='2'/%3E%3C!-- Humo más visible --%3E%3Ccircle cx='46' cy='6' r='2' fill='%23E0E0E0' opacity='0.9'/%3E%3Ccircle cx='48' cy='3' r='1.5' fill='%23E0E0E0' opacity='0.7'/%3E%3C/g%3E%3C/svg%3E") 12 12, text !important;
-  }
-
-  /* Hover effects with cannabis cursor */
-  .cannabis-cursor .hover\\:bg-green-50:hover,
-  .cannabis-cursor .hover\\:bg-green-100:hover,
-  .cannabis-cursor button:active,
-  .cannabis-cursor a:active {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg%3E%3C!-- Guante cerrado estilo Mickey Mouse --%3E%3Cpath d='M12 24c0-2 2-4 4-4h12c2 0 4 2 4 4v12c0 2-2 4-4 4H16c-2 0-4-2-4-4V24z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Pulgar --%3E%3Cpath d='M8 28c0-2 2-4 4-4s4 2 4 4v4c0 2-2 4-4 4s-4-2-4-4v-4z' fill='%23FFFFFF' stroke='%23000000' strokeWidth='1.5'/%3E%3C!-- Cigarro de Cannabis sostenido --%3E%3Cpath d='M16 20h16c1.5 0 3 0.5 3 2v2c0 1.5-1.5 2-3 2H16c-1.5 0-3-0.5-3-2v-2c0-1.5 1.5-2 3-2z' fill='%23F5F5DC' stroke='%23D4A574' strokeWidth='1'/%3E%3C!-- Punta de cannabis grande y detallada --%3E%3Cpath d='M32 20h6c1.5 0 3 0.5 3 2s-1.5 2-3 2h-6v-4z' fill='%2344AA44' stroke='%23228B22' strokeWidth='1'/%3E%3C!-- Detalles de la punta de cannabis --%3E%3Cpath d='M35 20c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3Cpath d='M37 20c0 0 1 1 1 2s-1 2-1 2' stroke='%23228B22' strokeWidth='0.5' fill='none'/%3E%3C!-- Humo más visible --%3E%3Ccircle cx='42' cy='18' r='2' fill='%23E0E0E0' opacity='0.9'/%3E%3Ccircle cx='44' cy='15' r='1.5' fill='%23E0E0E0' opacity='0.7'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab !important;
-  }
-`}</style>
-
       {/* Cannabis Pattern Background */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-10 left-10 text-6xl">🌿</div>
@@ -531,189 +581,47 @@ const ClubDashboard = () => {
             <TabsContent value="products" className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-green-500" />
-                    <Input
-                      placeholder="Buscar productos..."
-                      className="pl-10 w-[300px] border-green-200 focus:border-green-500 rounded-xl"
-                    />
-                  </div>
-                  <Button variant="outline" size="sm" className="border-green-200 text-green-700 hover:bg-green-50 rounded-xl">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filtros
+                  <Button 
+                    onClick={() => setIsAddProductOpen(true)}
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 rounded-xl shadow-lg"
+                  >
+                    <PackagePlus className="h-4 w-4 mr-2" />
+                    Agregar Producto
                   </Button>
                 </div>
-                <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 rounded-xl shadow-lg">
-                      <PackagePlus className="h-4 w-4 mr-2" />
-                      Agregar Producto
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px] rounded-2xl border-green-200">
-                    <DialogHeader>
-                      <DialogTitle className="text-green-800 flex items-center">
-                        <div className="p-2 bg-green-100 rounded-lg mr-3">
-                          <PackagePlus className="h-5 w-5 text-green-600" />
-                        </div>
-                        Agregar Nuevo Producto
-                      </DialogTitle>
-                      <DialogDescription className="text-green-600">
-                        Completa la información del nuevo producto cannábico.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="productName" className="text-right text-green-700 font-medium">
-                          Nombre
-                        </Label>
-                        <Input id="productName" className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="category" className="text-right text-green-700 font-medium">
-                          Categoría
-                        </Label>
-                        <Select>
-                          <SelectTrigger className="col-span-3 border-green-200 focus:border-green-500 rounded-lg">
-                            <SelectValue placeholder="Seleccionar categoría" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border-green-200">
-                            <SelectItem value="sativa">🌱 Sativa</SelectItem>
-                            <SelectItem value="indica">🍃 Indica</SelectItem>
-                            <SelectItem value="hibrida">🌿 Híbrida</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="thc" className="text-right text-green-700 font-medium">
-                          THC %
-                        </Label>
-                        <Input id="thc" className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="cbd" className="text-right text-green-700 font-medium">
-                          CBD %
-                        </Label>
-                        <Input id="cbd" className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="price" className="text-right text-green-700 font-medium">
-                          Precio €
-                        </Label>
-                        <Input id="price" type="number" step="0.01" className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="stock" className="text-right text-green-700 font-medium">
-                          Stock
-                        </Label>
-                        <Input id="stock" type="number" className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="description" className="text-right text-green-700 font-medium">
-                          Descripción
-                        </Label>
-                        <Textarea id="description" className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" />
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" onClick={() => setIsAddProductOpen(false)} className="border-green-200 text-green-700 hover:bg-green-50 rounded-lg">
-                        Cancelar
-                      </Button>
-                      <Button onClick={() => setIsAddProductOpen(false)} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg">
-                        Agregar Producto
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
               </div>
 
-              <Card className="border-green-200 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100">
-                  <CardTitle className="text-green-800 flex items-center">
-                    <Package className="h-5 w-5 mr-2" />
-                    Catálogo de Productos
-                  </CardTitle>
-                  <CardDescription className="text-green-600">
-                    Gestiona el inventario de productos cannábicos del club
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-green-50/50">
-                        <TableHead className="text-green-700 font-semibold">Producto</TableHead>
-                        <TableHead className="text-green-700 font-semibold">Categoría</TableHead>
-                        <TableHead className="text-green-700 font-semibold">THC/CBD</TableHead>
-                        <TableHead className="text-green-700 font-semibold">Precio</TableHead>
-                        <TableHead className="text-green-700 font-semibold">Stock</TableHead>
-                        <TableHead className="text-green-700 font-semibold">Rating</TableHead>
-                        <TableHead className="text-green-700 font-semibold">Estado</TableHead>
-                        <TableHead className="text-right text-green-700 font-semibold">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {mockProducts.map((product) => (
-                        <TableRow key={product.id} className="hover:bg-green-50/50 transition-colors">
-                          <TableCell>
-                            <div className="flex items-center space-x-3">
-                              <div className="text-2xl">{product.emoji}</div>
-                              <div>
-                                <div className="font-medium text-green-800">{product.name}</div>
-                                <div className="text-sm text-green-600">Cepa premium</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className="bg-green-100 text-green-800 border-green-200">
-                              {product.category}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-green-700">
-                            <div className="text-sm">
-                              <div>THC: {product.thc}</div>
-                              <div>CBD: {product.cbd}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-semibold text-green-800">€{product.price.toFixed(2)}</TableCell>
-                          <TableCell className="text-green-700">{product.stock}g</TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-1">
-                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                              <span className="text-sm font-medium text-green-800">{product.rating}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{getStatusBadge(product.status)}</TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-green-100">
-                                  <MoreHorizontal className="h-4 w-4 text-green-600" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="border-green-200 rounded-xl">
-                                <DropdownMenuLabel className="text-green-800">Acciones</DropdownMenuLabel>
-                                <DropdownMenuItem className="hover:bg-green-50">
-                                  <Eye className="mr-2 h-4 w-4 text-green-600" />
-                                  Ver detalles
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="hover:bg-green-50">
-                                  <Edit className="mr-2 h-4 w-4 text-green-600" />
-                                  Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600 hover:bg-red-50">
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Eliminar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+              <ProductList 
+                products={products}
+                isLoading={isProductsLoading}
+                error={productsError}
+                onEdit={(product) => {
+                  setSelectedProduct(product)
+                  setIsEditProductOpen(true)
+                }}
+                onDelete={handleDeleteProduct}
+                onUpdateStock={handleUpdateStock}
+              />
+
+              <ProductForm
+                isOpen={isAddProductOpen}
+                onClose={() => setIsAddProductOpen(false)}
+                onSubmit={handleCreateProduct}
+                title="Agregar Nuevo Producto"
+                description="Completa la información del nuevo producto cannábico."
+              />
+
+              <ProductForm
+                isOpen={isEditProductOpen}
+                onClose={() => {
+                  setIsEditProductOpen(false)
+                  setSelectedProduct(null)
+                }}
+                onSubmit={handleUpdateProduct}
+                product={selectedProduct || undefined}
+                title="Editar Producto"
+                description="Modifica la información del producto cannábico."
+              />
             </TabsContent>
 
             {/* Reservations Tab */}

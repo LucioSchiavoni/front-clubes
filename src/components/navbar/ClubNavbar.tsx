@@ -59,6 +59,10 @@ export default function ClubNavbar() {
     return <Loader2/>
   }
 
+  if(!club) {
+    return null
+  }
+
 
   return (
   
@@ -115,7 +119,6 @@ export default function ClubNavbar() {
                 {club.name.charAt(0)}
               </span>)
               }
-                 
               </div>
             )}
           </div>
