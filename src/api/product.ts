@@ -1,6 +1,13 @@
 import instance from '@/config/axios'
 import type { Product } from '@/hooks/useProducts'
 
+interface ApiResponse<T> {
+  success: boolean
+  statusCode: number
+  message: string
+  data: T
+}
+
 interface CreateProductData {
   name: string
   description: string
@@ -18,23 +25,27 @@ interface UpdateProductData extends Partial<CreateProductData> {
 
 export const productApi = {
   // Obtener todos los productos
-  getAllProducts: async (): Promise<Product[]> => {
-    const response = await instance.get('/')
+  getAllProducts: async (id:string): Promise<ApiResponse<Product[]>> => {
+    const response = await instance.get(`/products/${id}`)
     return response.data
   },
 
   // Obtener un producto por ID
-  getProductById: async (id: string): Promise<Product> => {
-    const response = await instance.get(`/${id}`)
+  getProductById: async (id: string): Promise<ApiResponse<Product>> => {
+    const response = await instance.get(`/product/${id}`)
     return response.data
   },
 
   // Crear un nuevo producto
-  createProduct: async (productData: CreateProductData): Promise<Product> => {
+  createProduct: async (productData: CreateProductData): Promise<ApiResponse<Product>> => {
     const formData = new FormData()
     Object.entries(productData).forEach(([key, value]) => {
       if (value !== undefined) {
-        formData.append(key, value.toString())
+        if (key === 'image' && value instanceof File) {
+          formData.append(key, value)
+        } else {
+          formData.append(key, value.toString())
+        }
       }
     })
 
@@ -47,7 +58,7 @@ export const productApi = {
   },
 
   // Actualizar un producto existente
-  updateProduct: async (productData: UpdateProductData): Promise<Product> => {
+  updateProduct: async (productData: UpdateProductData): Promise<ApiResponse<Product>> => {
     const formData = new FormData()
     Object.entries(productData).forEach(([key, value]) => {
       if (value !== undefined && key !== 'id') {
@@ -64,12 +75,13 @@ export const productApi = {
   },
 
   // Eliminar un producto
-  deleteProduct: async (id: string): Promise<void> => {
-    await instance.delete(`/${id}`)
+  deleteProduct: async (id: string): Promise<ApiResponse<void>> => {
+    const response = await instance.delete(`/${id}`)
+    return response.data
   },
 
   // Actualizar el stock de un producto
-  updateStock: async (id: string, stock: number): Promise<Product> => {
+  updateStock: async (id: string, stock: number): Promise<ApiResponse<Product>> => {
     const response = await instance.patch(`/${id}/stock`, 
       { stock },
       {

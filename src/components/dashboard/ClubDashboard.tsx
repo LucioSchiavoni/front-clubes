@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Loader2, Users, Package, Calendar, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, UserPlus, PackagePlus, CalendarPlus, Leaf, TrendingUp, DollarSign, Star } from 'lucide-react'
+import { Loader2, Users, Package, Calendar, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, UserPlus, PackagePlus, CalendarPlus, Leaf, TrendingUp, DollarSign } from 'lucide-react'
 import "@/styles/cursor.css"
 
 import { useAuthStore } from "@/store/auth"
@@ -39,14 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+
 
 import AddClubForm from "../forms/AddClubForm"
 import { ProductList } from "@/components/products/ProductList"
@@ -191,7 +184,7 @@ const ClubDashboard = () => {
   }, [club?.id])
 
   const loadProducts = async () => {
-    await getAllProducts()
+    await getAllProducts(club?.id)
   }
 
   const handleCreateProduct = async (formData: FormData) => {

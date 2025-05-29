@@ -5,7 +5,7 @@ export interface Product {
   id: string
   name: string
   description: string
-  image: string
+  image: string | null
   price: number
   category: string
   thc: number
@@ -14,7 +14,11 @@ export interface Product {
   active: boolean
   createdAt: string
   updatedAt: string
-  clubId: string
+  clubId: string | null
+  club?: {
+    id: string
+    name: string
+  } | null
 }
 
 interface CreateProductData {
@@ -28,8 +32,15 @@ interface CreateProductData {
   image?: File
 }
 
-interface UpdateProductData extends Partial<CreateProductData> {
-  id: string
+// interface UpdateProductData extends Partial<CreateProductData> {
+//   id: string
+// }
+
+interface ApiResponse<T> {
+  success: boolean
+  statusCode: number
+  message: string
+  data: T
 }
 
 export const useProducts = () => {
@@ -37,12 +48,13 @@ export const useProducts = () => {
   const [error, setError] = useState<string | null>(null)
   const [products, setProducts] = useState<Product[]>([])
 
-  const getAllProducts = useCallback(async (): Promise<Product[]> => {
+  const getAllProducts = useCallback(async (id:string): Promise<Product[]> => {
     try {
       setIsLoading(true)
-      const data = await productApi.getAllProducts()
-      setProducts(Array.isArray(data) ? data : [])
-      return Array.isArray(data) ? data : []
+      const response = await productApi.getAllProducts(id)
+      const productsArray = Array.isArray(response.data) ? response.data : []
+      setProducts(productsArray)
+      return productsArray
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
       return []
@@ -54,7 +66,8 @@ export const useProducts = () => {
   const getProductById = async (id: string): Promise<Product | null> => {
     try {
       setIsLoading(true)
-      return await productApi.getProductById(id)
+      const response = await productApi.getProductById(id)
+      return response.data
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
       return null
@@ -66,14 +79,14 @@ export const useProducts = () => {
   const createProduct = async (productData: Parameters<typeof productApi.createProduct>[0]): Promise<Product | null> => {
     try {
       setIsLoading(true)
-      const newProduct = await productApi.createProduct(productData)
-      if (newProduct) {
+      const response = await productApi.createProduct(productData)
+      if (response.data) {
         setProducts(currentProducts => {
           const productsArray = Array.isArray(currentProducts) ? currentProducts : []
-          return [...productsArray, newProduct]
+          return [...productsArray, response.data]
         })
       }
-      return newProduct
+      return response.data
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
       return null
@@ -85,14 +98,14 @@ export const useProducts = () => {
   const updateProduct = async (productData: Parameters<typeof productApi.updateProduct>[0]): Promise<Product | null> => {
     try {
       setIsLoading(true)
-      const updatedProduct = await productApi.updateProduct(productData)
-      if (updatedProduct) {
+      const response = await productApi.updateProduct(productData)
+      if (response.data) {
         setProducts(currentProducts => {
           const productsArray = Array.isArray(currentProducts) ? currentProducts : []
-          return productsArray.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+          return productsArray.map(p => p.id === response.data.id ? response.data : p)
         })
       }
-      return updatedProduct
+      return response.data
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
       return null
@@ -121,14 +134,14 @@ export const useProducts = () => {
   const updateStock = async (id: string, stock: number): Promise<Product | null> => {
     try {
       setIsLoading(true)
-      const updatedProduct = await productApi.updateStock(id, stock)
-      if (updatedProduct) {
+      const response = await productApi.updateStock(id, stock)
+      if (response.data) {
         setProducts(currentProducts => {
           const productsArray = Array.isArray(currentProducts) ? currentProducts : []
-          return productsArray.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+          return productsArray.map(p => p.id === response.data.id ? response.data : p)
         })
       }
-      return updatedProduct
+      return response.data
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
       return null

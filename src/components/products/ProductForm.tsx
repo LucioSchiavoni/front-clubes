@@ -159,13 +159,26 @@ export const ProductForm = ({
               <Label htmlFor="image" className="text-right text-green-700 font-medium">
                 Imagen
               </Label>
-              <Input 
-                id="image" 
-                name="image"
-                type="file"
-                accept="image/*"
-                className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" 
-              />
+              <div className="col-span-3">
+                <Input 
+                  id="image" 
+                  name="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      // Actualizar el FormData con el nuevo archivo
+                      const formData = new FormData(e.target.form!)
+                      formData.set('image', file)
+                    }
+                  }}
+                  className="border-green-200 focus:border-green-500 rounded-lg" 
+                />
+                <p className="text-sm text-green-600 mt-1">
+                  Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
+                </p>
+              </div>
             </div>
           </div>
           <div className="flex justify-end space-x-2">
