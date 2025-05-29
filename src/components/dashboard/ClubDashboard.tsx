@@ -171,6 +171,7 @@ const ClubDashboard = () => {
   const { 
     isLoading: isProductsLoading, 
     error: productsError,
+    products,
     getAllProducts,
     createProduct,
     updateProduct,
@@ -180,7 +181,6 @@ const ClubDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
   const [isAddProductOpen, setIsAddProductOpen] = useState(false)
-  const [products, setProducts] = useState<Product[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isEditProductOpen, setIsEditProductOpen] = useState(false)
 
@@ -191,11 +191,15 @@ const ClubDashboard = () => {
   }, [club?.id])
 
   const loadProducts = async () => {
-    const productsData = await getAllProducts()
-    setProducts(productsData)
+    await getAllProducts()
   }
 
   const handleCreateProduct = async (formData: FormData) => {
+    if (!profile?.data?.clubId) {
+      console.error('No hay un club asociado al usuario')
+      return
+    }
+
     const productData = {
       name: formData.get('name') as string,
       description: formData.get('description') as string,
@@ -204,7 +208,8 @@ const ClubDashboard = () => {
       thc: parseFloat(formData.get('thc') as string),
       CBD: parseFloat(formData.get('CBD') as string),
       stock: parseInt(formData.get('stock') as string),
-      image: formData.get('image') as File | undefined
+      image: formData.get('image') as File | undefined,
+      clubId: profile.data.clubId
     }
 
     const newProduct = await createProduct(productData)

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { productApi } from '@/api/product'
 
 export interface Product {
@@ -35,18 +35,21 @@ interface UpdateProductData extends Partial<CreateProductData> {
 export const useProducts = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [products, setProducts] = useState<Product[]>([])
 
-  const getAllProducts = async (): Promise<Product[]> => {
+  const getAllProducts = useCallback(async (): Promise<Product[]> => {
     try {
       setIsLoading(true)
-      return await productApi.getAllProducts()
+      const data = await productApi.getAllProducts()
+      setProducts(Array.isArray(data) ? data : [])
+      return Array.isArray(data) ? data : []
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
       return []
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   const getProductById = async (id: string): Promise<Product | null> => {
     try {
@@ -63,7 +66,14 @@ export const useProducts = () => {
   const createProduct = async (productData: Parameters<typeof productApi.createProduct>[0]): Promise<Product | null> => {
     try {
       setIsLoading(true)
-      return await productApi.createProduct(productData)
+      const newProduct = await productApi.createProduct(productData)
+      if (newProduct) {
+        setProducts(currentProducts => {
+          const productsArray = Array.isArray(currentProducts) ? currentProducts : []
+          return [...productsArray, newProduct]
+        })
+      }
+      return newProduct
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
       return null
@@ -75,7 +85,14 @@ export const useProducts = () => {
   const updateProduct = async (productData: Parameters<typeof productApi.updateProduct>[0]): Promise<Product | null> => {
     try {
       setIsLoading(true)
-      return await productApi.updateProduct(productData)
+      const updatedProduct = await productApi.updateProduct(productData)
+      if (updatedProduct) {
+        setProducts(currentProducts => {
+          const productsArray = Array.isArray(currentProducts) ? currentProducts : []
+          return productsArray.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+        })
+      }
+      return updatedProduct
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
       return null
@@ -88,6 +105,10 @@ export const useProducts = () => {
     try {
       setIsLoading(true)
       await productApi.deleteProduct(id)
+      setProducts(currentProducts => {
+        const productsArray = Array.isArray(currentProducts) ? currentProducts : []
+        return productsArray.filter(p => p.id !== id)
+      })
       return true
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
@@ -100,7 +121,14 @@ export const useProducts = () => {
   const updateStock = async (id: string, stock: number): Promise<Product | null> => {
     try {
       setIsLoading(true)
-      return await productApi.updateStock(id, stock)
+      const updatedProduct = await productApi.updateStock(id, stock)
+      if (updatedProduct) {
+        setProducts(currentProducts => {
+          const productsArray = Array.isArray(currentProducts) ? currentProducts : []
+          return productsArray.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+        })
+      }
+      return updatedProduct
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
       return null
@@ -112,6 +140,7 @@ export const useProducts = () => {
   return {
     isLoading,
     error,
+    products,
     getAllProducts,
     getProductById,
     createProduct,

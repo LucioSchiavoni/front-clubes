@@ -100,11 +100,24 @@ export const ProductList = ({
             <Card key={product.id} className="border-green-200 hover:shadow-xl transition-shadow">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-semibold text-lg text-green-800">{product.name}</h3>
-                    <Badge className="mt-1 bg-green-100 text-green-800 border-green-200">
-                      {product.category}
-                    </Badge>
+                  <div className="flex items-center space-x-3">
+                    {product.image ? (
+                      <img 
+                        src={product.image} 
+                        alt={product.name}
+                        className="w-16 h-16 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-green-100 flex items-center justify-center">
+                        <PackagePlus className="h-8 w-8 text-green-600" />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-lg text-green-800">{product.name}</h3>
+                      <Badge className="mt-1 bg-green-100 text-green-800 border-green-200">
+                        {product.category}
+                      </Badge>
+                    </div>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
