@@ -21,7 +21,7 @@ const AdminDashboard = () => {
 
   // Verificar si el usuario es SUPERADMIN
   useEffect(() => {
-    if (profile?.role !== "SUPERADMIN") {
+    if (profile?.rol !== "ADMIN") {
       navigate("/dashboard")
     }
   }, [profile, navigate])
