@@ -135,9 +135,12 @@ const ClubDashboard = () => {
     socios, 
     isLoading: isSociosLoading, 
     error: sociosError,
-    getAllSocios 
+    getAllSocios,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter
   } = useSocios(club?.id || '')
-  const [searchTerm, setSearchTerm] = useState("")
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
   const [isAddProductOpen, setIsAddProductOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -421,16 +424,51 @@ const ClubDashboard = () => {
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-green-500" />
                     <Input
-                      placeholder="Buscar socios..."
+                      placeholder="Buscar por nombre o email..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-[300px] border-green-200 focus:border-green-500 rounded-xl text-black "
+                      className="pl-10 w-[300px] border-green-200 focus:border-green-500 rounded-xl text-black"
                     />
                   </div>
-                  <Button variant="outline" size="sm" className="border-green-200 text-green-700 hover:bg-green-50 rounded-xl">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filtros
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="border-green-200 text-green-700 hover:bg-green-50 rounded-xl">
+                        <Filter className="h-4 w-4 mr-2" />
+                        Filtros
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="border-green-200 rounded-xl shadow-lg bg-white/95 backdrop-blur-sm">
+                      <DropdownMenuLabel className="text-green-800 font-medium">Filtrar por estado</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-green-100" />
+                      <DropdownMenuItem 
+                        className={`hover:bg-green-50 transition-colors duration-200 ${statusFilter === 'all' ? 'bg-green-50' : ''}`}
+                        onClick={() => setStatusFilter('all')}
+                      >
+                        <div className="flex items-center text-black">
+                          <div className="w-2 h-2 rounded-full bg-gray-400 mr-2"></div>
+                          Todos
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className={`hover:bg-green-50 transition-colors duration-200 ${statusFilter === 'active' ? 'bg-green-50' : ''}`}
+                        onClick={() => setStatusFilter('active')}
+                      >
+                        <div className="flex items-center text-black">
+                          <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                          Activos
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className={`hover:bg-green-50 transition-colors duration-200 ${statusFilter === 'inactive' ? 'bg-green-50' : ''}`}
+                        onClick={() => setStatusFilter('inactive')}
+                      >
+                        <div className="flex items-center text-black">
+                          <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
+                          Inactivos
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                 <Button 
                   onClick={() => setIsAddMemberOpen(true)}
@@ -474,60 +512,81 @@ const ClubDashboard = () => {
                       <p className="text-sm text-green-600 mt-2">Comienza agregando tu primer socio</p>
                     </div>
                   ) : (
-                    <Table>
+                    <Table className="w-full">
                       <TableHeader>
-                        <TableRow className="bg-green-50/50">
-                          <TableHead className="text-green-700 font-semibold">Socio</TableHead>
-                          <TableHead className="text-green-700 font-semibold">Rol</TableHead>
-                          <TableHead className="text-green-700 font-semibold">Estado</TableHead>
-                          <TableHead className="text-green-700 font-semibold">Fecha Registro</TableHead>
-                          <TableHead className="text-green-700 font-semibold">Tipo</TableHead>
-                          <TableHead className="text-right text-green-700 font-semibold">Acciones</TableHead>
+                        <TableRow className="bg-gradient-to-r from-green-50 to-emerald-50 hover:bg-green-50/50">
+                          <TableHead className="text-green-700 font-semibold py-4">Socio</TableHead>
+                          <TableHead className="text-green-700 font-semibold py-4">Teléfono</TableHead>
+                          <TableHead className="text-green-700 font-semibold py-4">Dirección</TableHead>
+                          <TableHead className="text-green-700 font-semibold py-4">Estado</TableHead>
+                          <TableHead className="text-green-700 font-semibold py-4">Fecha Registro</TableHead>
+                          <TableHead className="text-right text-green-700 font-semibold py-4">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {socios.map((member) => (
-                          <TableRow key={member.id} className="hover:bg-green-50/50 transition-colors">
-                            <TableCell>
-                              <div className="flex items-center space-x-3">
-                                <div className="text-2xl">👤</div>
+                          <TableRow 
+                            key={member.id} 
+                            className="hover:bg-green-50/50 transition-colors duration-200 border-b border-green-100"
+                          >
+                            <TableCell className="py-4">
+                              <div className="flex items-center space-x-4">
+                                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center">
+                                  <span className="text-xl">👤</span>
+                                </div>
                                 <div>
                                   <div className="font-medium text-green-800">{member.name}</div>
                                   <div className="text-sm text-green-600">{member.email}</div>
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="text-green-700">{member.rol}</TableCell>
-                            <TableCell>
-                              <Badge className={member.active ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200"}>
+                            <TableCell className="py-4 text-green-700">
+                              {member.phone ? member.phone : "N/A"}
+                            </TableCell>
+                            <TableCell className="py-4 text-green-700">
+                              {member.address ? member.address : "N/A"}
+                            </TableCell>
+                      
+                            <TableCell className="py-4">
+                              <Badge 
+                                className={`${
+                                  member.active 
+                                    ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200" 
+                                    : "bg-gradient-to-r from-red-100 to-pink-100 text-red-800 border-red-200"
+                                }`}
+                              >
                                 {member.active ? "Activo" : "Inactivo"}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-green-700">{new Date(member.createdAt).toLocaleDateString()}</TableCell>
-                            <TableCell>
-                              <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                                {member.rol}
-                              </Badge>
+                            <TableCell className="py-4 text-green-700">
+                              {new Date(member.createdAt).toLocaleDateString()}
                             </TableCell>
-                            <TableCell className="text-right">
+                
+                            <TableCell className="py-4 text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-green-100">
+                                  <Button 
+                                    variant="ghost" 
+                                    className="h-8 w-8 p-0 hover:bg-green-100 rounded-full transition-colors duration-200"
+                                  >
                                     <MoreHorizontal className="h-4 w-4 text-green-600" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="border-green-200 rounded-xl">
-                                  <DropdownMenuLabel className="text-green-800">Acciones</DropdownMenuLabel>
-                                  <DropdownMenuItem className="hover:bg-green-50">
+                                <DropdownMenuContent 
+                                  align="end" 
+                                  className="border-green-200 rounded-xl shadow-lg bg-white/95 backdrop-blur-sm"
+                                >
+                                  <DropdownMenuLabel className="text-green-800 font-medium">Acciones</DropdownMenuLabel>
+                                  <DropdownMenuItem className="hover:bg-green-50 transition-colors duration-200">
                                     <Eye className="mr-2 h-4 w-4 text-green-600" />
                                     Ver detalles
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="hover:bg-green-50">
+                                  <DropdownMenuItem className="hover:bg-green-50 transition-colors duration-200">
                                     <Edit className="mr-2 h-4 w-4 text-green-600" />
                                     Editar
                                   </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-red-600 hover:bg-red-50">
+                                  <DropdownMenuSeparator className="bg-green-100" />
+                                  <DropdownMenuItem className="text-red-600 hover:bg-red-50 transition-colors duration-200">
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     Eliminar
                                   </DropdownMenuItem>
