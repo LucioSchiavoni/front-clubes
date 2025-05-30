@@ -1,13 +1,11 @@
-"use client"
-
 import { useState, useEffect } from "react"
-import { Loader2, Users, Package, Calendar, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, UserPlus, PackagePlus, CalendarPlus, Leaf, TrendingUp, DollarSign } from 'lucide-react'
+import { Loader2, Users, Package, Calendar, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, UserPlus, PackagePlus, CalendarPlus, Leaf, TrendingUp, DollarSign, CheckCircle2 } from 'lucide-react'
 import "@/styles/cursor.css"
 
 import { useAuthStore } from "@/store/auth"
 import { useClub } from "@/hooks/useClub"
 import { useProducts } from "@/hooks/useProducts"
-
+import { useSocios } from "@/hooks/useSocios"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,14 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,50 +29,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
 
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert"
 
 import AddClubForm from "../forms/AddClubForm"
 import { ProductList } from "@/components/products/ProductList"
 import { ProductForm } from "@/components/products/ProductForm"
+import AddSocioForm from "@/components/socios/AddSocioForm"
 import type { Product } from "@/hooks/useProducts"
 
-// Datos de ejemplo
-const mockMembers = [
-  {
-    id: 1,
-    name: "Juan Pérez",
-    email: "juan@email.com",
-    phone: "+34 666 123 456",
-    memberNumber: "M001",
-    joinDate: "2024-01-15",
-    status: "active",
-    totalPurchases: 450.00,
-    avatar: "🧑‍🦱"
-  },
-  {
-    id: 2,
-    name: "María García",
-    email: "maria@email.com",
-    phone: "+34 666 789 012",
-    memberNumber: "M002",
-    joinDate: "2024-02-20",
-    status: "active",
-    totalPurchases: 320.00,
-    avatar: "👩‍🦰"
-  },
-  {
-    id: 3,
-    name: "Carlos López",
-    email: "carlos@email.com",
-    phone: "+34 666 345 678",
-    memberNumber: "M003",
-    joinDate: "2024-03-10",
-    status: "suspended",
-    totalPurchases: 180.00,
-    avatar: "👨‍🦲"
-  }
-]
 
 const mockProducts = [
   {
@@ -171,16 +131,27 @@ const ClubDashboard = () => {
     deleteProduct,
     updateStock
   } = useProducts()
+  const { 
+    socios, 
+    isLoading: isSociosLoading, 
+    error: sociosError,
+    getAllSocios 
+  } = useSocios(club?.id || '')
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
   const [isAddProductOpen, setIsAddProductOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isEditProductOpen, setIsEditProductOpen] = useState(false)
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false)
 
   useEffect(() => {
-    if (club?.id) {
-      loadProducts()
+    const loadData = async () => {
+      if (club?.id) {
+        await loadProducts()
+        await getAllSocios()
+      }
     }
+    loadData()
   }, [club?.id])
 
   const loadProducts = async () => {
@@ -252,7 +223,17 @@ const ClubDashboard = () => {
     }
   }
 
-  // Si el usuario no tiene un club asignado, mostrar el formulario de creación
+  const handleAddMember = async (formData: FormData) => {
+    setShowSuccessAlert(true)
+    
+    setTimeout(() => {
+      setShowSuccessAlert(false)
+    }, 3000)
+
+    await getAllSocios()
+  }
+
+
   if (!profile?.data?.clubId) {
     return <AddClubForm />
   }
@@ -307,6 +288,16 @@ const ClubDashboard = () => {
       </div>
 
       <div className="relative flex-1 space-y-8 p-6">
+        {showSuccessAlert && (
+          <Alert className="bg-green-50 border-green-200 text-green-800 fixed top-4 right-4 z-50 w-auto min-w-[300px] shadow-lg">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertTitle>¡Éxito!</AlertTitle>
+            <AlertDescription>
+              El socio ha sido registrado correctamente.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -343,7 +334,7 @@ const ClubDashboard = () => {
               <Users className="h-5 w-5 text-green-200" />
             </CardHeader>
             <CardContent className="relative z-10">
-              <div className="text-3xl font-bold">{mockMembers.length}</div>
+              <div className="text-3xl font-bold">{socios.length}</div>
               <p className="text-xs text-green-200 flex items-center mt-1">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 +2 desde el mes pasado
@@ -433,7 +424,7 @@ const ClubDashboard = () => {
                       placeholder="Buscar socios..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-[300px] border-green-200 focus:border-green-500 rounded-xl"
+                      className="pl-10 w-[300px] border-green-200 focus:border-green-500 rounded-xl text-black "
                     />
                   </div>
                   <Button variant="outline" size="sm" className="border-green-200 text-green-700 hover:bg-green-50 rounded-xl">
@@ -441,62 +432,20 @@ const ClubDashboard = () => {
                     Filtros
                   </Button>
                 </div>
-                <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 rounded-xl shadow-lg">
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Agregar Socio
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px] rounded-2xl border-green-200">
-                    <DialogHeader>
-                      <DialogTitle className="text-green-800 flex items-center">
-                        <div className="p-2 bg-green-100 rounded-lg mr-3">
-                          <UserPlus className="h-5 w-5 text-green-600" />
-                        </div>
-                        Agregar Nuevo Socio
-                      </DialogTitle>
-                      <DialogDescription className="text-green-600">
-                        Completa la información del nuevo socio del club cannábico.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right text-green-700 font-medium">
-                          Nombre
-                        </Label>
-                        <Input id="name" className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="email" className="text-right text-green-700 font-medium">
-                          Email
-                        </Label>
-                        <Input id="email" type="email" className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="phone" className="text-right text-green-700 font-medium">
-                          Teléfono
-                        </Label>
-                        <Input id="phone" className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="dni" className="text-right text-green-700 font-medium">
-                          DNI
-                        </Label>
-                        <Input id="dni" className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" />
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" onClick={() => setIsAddMemberOpen(false)} className="border-green-200 text-green-700 hover:bg-green-50 rounded-lg">
-                        Cancelar
-                      </Button>
-                      <Button onClick={() => setIsAddMemberOpen(false)} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg">
-                        Agregar Socio
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <Button 
+                  onClick={() => setIsAddMemberOpen(true)}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 rounded-xl shadow-lg"
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Agregar Socio
+                </Button>
               </div>
+    {/* Agregar nuevo socio */}
+              <AddSocioForm 
+                isOpen={isAddMemberOpen}
+                onClose={() => setIsAddMemberOpen(false)}
+                onSubmit={handleAddMember}
+              />
 
               <Card className="border-green-200 shadow-lg rounded-2xl overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100">
@@ -509,68 +458,87 @@ const ClubDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-green-50/50">
-                        <TableHead className="text-green-700 font-semibold">Socio</TableHead>
-                        <TableHead className="text-green-700 font-semibold">Contacto</TableHead>
-                        <TableHead className="text-green-700 font-semibold">Número</TableHead>
-                        <TableHead className="text-green-700 font-semibold">Fecha Ingreso</TableHead>
-                        <TableHead className="text-green-700 font-semibold">Estado</TableHead>
-                        <TableHead className="text-green-700 font-semibold">Total Compras</TableHead>
-                        <TableHead className="text-right text-green-700 font-semibold">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {mockMembers.map((member) => (
-                        <TableRow key={member.id} className="hover:bg-green-50/50 transition-colors">
-                          <TableCell>
-                            <div className="flex items-center space-x-3">
-                              <div className="text-2xl">{member.avatar}</div>
-                              <div>
-                                <div className="font-medium text-green-800">{member.name}</div>
-                                <div className="text-sm text-green-600">{member.email}</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-green-700">{member.phone}</TableCell>
-                          <TableCell>
-                            <Badge className="bg-green-100 text-green-800 border-green-200">
-                              {member.memberNumber}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-green-700">{member.joinDate}</TableCell>
-                          <TableCell>{getStatusBadge(member.status)}</TableCell>
-                          <TableCell className="font-semibold text-green-800">€{member.totalPurchases.toFixed(2)}</TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-green-100">
-                                  <MoreHorizontal className="h-4 w-4 text-green-600" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="border-green-200 rounded-xl">
-                                <DropdownMenuLabel className="text-green-800">Acciones</DropdownMenuLabel>
-                                <DropdownMenuItem className="hover:bg-green-50">
-                                  <Eye className="mr-2 h-4 w-4 text-green-600" />
-                                  Ver detalles
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="hover:bg-green-50">
-                                  <Edit className="mr-2 h-4 w-4 text-green-600" />
-                                  Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600 hover:bg-red-50">
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Eliminar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
+                  {isSociosLoading ? (
+                    <div className="flex items-center justify-center p-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+                      <span className="ml-2 text-green-700">Cargando socios...</span>
+                    </div>
+                  ) : sociosError ? (
+                    <div className="p-4 text-red-600 bg-red-50 border border-red-200 rounded-lg m-4">
+                      <p>Error al cargar los socios: {sociosError}</p>
+                    </div>
+                  ) : socios.length === 0 ? (
+                    <div className="p-8 text-center text-green-700">
+                      <Users className="h-12 w-12 mx-auto mb-4 text-green-400" />
+                      <p className="text-lg font-medium">No hay socios registrados</p>
+                      <p className="text-sm text-green-600 mt-2">Comienza agregando tu primer socio</p>
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-green-50/50">
+                          <TableHead className="text-green-700 font-semibold">Socio</TableHead>
+                          <TableHead className="text-green-700 font-semibold">Rol</TableHead>
+                          <TableHead className="text-green-700 font-semibold">Estado</TableHead>
+                          <TableHead className="text-green-700 font-semibold">Fecha Registro</TableHead>
+                          <TableHead className="text-green-700 font-semibold">Tipo</TableHead>
+                          <TableHead className="text-right text-green-700 font-semibold">Acciones</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {socios.map((member) => (
+                          <TableRow key={member.id} className="hover:bg-green-50/50 transition-colors">
+                            <TableCell>
+                              <div className="flex items-center space-x-3">
+                                <div className="text-2xl">👤</div>
+                                <div>
+                                  <div className="font-medium text-green-800">{member.name}</div>
+                                  <div className="text-sm text-green-600">{member.email}</div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-green-700">{member.rol}</TableCell>
+                            <TableCell>
+                              <Badge className={member.active ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200"}>
+                                {member.active ? "Activo" : "Inactivo"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-green-700">{new Date(member.createdAt).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                                {member.rol}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-green-100">
+                                    <MoreHorizontal className="h-4 w-4 text-green-600" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="border-green-200 rounded-xl">
+                                  <DropdownMenuLabel className="text-green-800">Acciones</DropdownMenuLabel>
+                                  <DropdownMenuItem className="hover:bg-green-50">
+                                    <Eye className="mr-2 h-4 w-4 text-green-600" />
+                                    Ver detalles
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="hover:bg-green-50">
+                                    <Edit className="mr-2 h-4 w-4 text-green-600" />
+                                    Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-red-600 hover:bg-red-50">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Eliminar
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

@@ -2,12 +2,8 @@ import {
   Package,
   Calendar,
   History,
-  TrendingUp,
   Activity,
   Eye,
-  MoreHorizontal,
-  ArrowUpRight,
-  ArrowDownRight,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"

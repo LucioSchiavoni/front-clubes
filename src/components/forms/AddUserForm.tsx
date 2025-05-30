@@ -1,15 +1,11 @@
 import React, { useState } from 'react'
-import { AlertCircle, Plus } from "lucide-react"
+import {  Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useMutation } from "@tanstack/react-query"
 import { registerRequest } from "@/api/auth"
-import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-  } from "@/components/ui/alert"
+
 
 import {
   Dialog,
