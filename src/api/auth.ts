@@ -1,6 +1,7 @@
 import { createUser } from "@/interface/create-user";
 import { loginUser } from "@/interface/login-user";
 import instance from "../config/axios";
+import axios from "axios";
 
 
 export const loginRequest = async (data: loginUser) => {

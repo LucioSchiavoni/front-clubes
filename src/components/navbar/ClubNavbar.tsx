@@ -90,9 +90,7 @@ export default function ClubNavbar() {
           ${isExpanded ? "w-80" : "w-16 lg:w-20"}
         `}
         onMouseEnter={() => setIsExpanded(true)}
-        onMouseLeave={() => setIsExpanded(false)}
-      >
-        {/* Logo */}
+        onMouseLeave={() => setIsExpanded(false)}>
         <div className="flex items-center justify-center h-16 border-b border-border">
           <div className={`transition-all duration-300 ${isExpanded ? "scale-100" : "scale-75"}`}>
             {isExpanded ? (
@@ -147,9 +145,7 @@ export default function ClubNavbar() {
                     w-full justify-start h-12 transition-all duration-200
                     ${isExpanded ? "px-4" : "px-0 justify-center"}
                     hover:bg-accent hover:text-accent-foreground
-                    group relative overflow-hidden
-                  `}
-                >
+                    group relative overflow-hidden`}>
                   <item.icon className={`h-5 w-5 ${isExpanded ? "mr-3" : ""} transition-all duration-200`} />
                   {isExpanded && (
                     <>
@@ -165,21 +161,17 @@ export default function ClubNavbar() {
                 </Button>
               ))}
             </div>
-
-            {/* Bottom Actions */}
             <div className="absolute bottom-4 left-2 right-2">
               <Separator className="mb-4" />
               <div className="space-y-1 flex flex-col justify-center items-center">
                 <ThemeSwitch />
-              
                 <Button
                   variant="ghost"
+                  onClick={() => navigate(`/config/${club.id}`)}
                   className={`
                     w-full justify-start h-12
                     ${isExpanded ? "px-4" : "px-0 justify-center"}
-                    hover:bg-accent hover:text-accent-foreground
-                  `}
-                >
+                    hover:bg-accent hover:text-accent-foreground`} >
                   <Settings className={`h-5 w-5 ${isExpanded ? "mr-3" : ""}`} />
                   {isExpanded && <span>Configuración</span>}
                 </Button>

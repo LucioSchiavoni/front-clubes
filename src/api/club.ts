@@ -1,5 +1,6 @@
 import instance from "@/config/axios";
 import {  CreateClub, ClubResponse } from "@/interface/create-club";
+import { UpdateClub } from "@/interface/update-club";
 
 export const registerClub = async(data: CreateClub): Promise<ClubResponse> => {
     try {
@@ -37,4 +38,22 @@ export const getClubById = async(clubId: string) => {
     }
 }
 
+export const updateClub = async(clubId: string, data: FormData | UpdateClub) => {
+    try {
+        const headers = data instanceof FormData 
+            ? { 'Content-Type': 'multipart/form-data' }
+            : { 'Content-Type': 'application/json' }
 
+        console.log('Enviando actualización:', {
+            isFormData: data instanceof FormData,
+            headers,
+            data: data instanceof FormData ? 'FormData' : data
+        })
+
+        const res = await instance.put(`/club/${clubId}`, data, { headers })
+        return res.data;
+    } catch (error) {
+        console.log('Error en updateClub:', error)
+        throw error
+    }
+}

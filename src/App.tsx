@@ -5,6 +5,7 @@ import PricingPage from "@/pages/pricing";
 import BlogPage from "@/pages/blog";
 import AboutPage from "@/pages/about";
 import DashboardPage from "@/pages/dashboardPage";
+import ConfigPage from "./pages/configPage";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <Route element={<IndexPage />} path="/" />
       <Route element={<DashboardPage />} path="/dashboard" />
       <Route element={<PricingPage />} path="/pricing" />
+      <Route element={<ConfigPage />} path="/config/:clubId" />
       <Route element={<BlogPage />} path="/blog" />
       <Route element={<AboutPage />} path="/about" />
     </Routes>

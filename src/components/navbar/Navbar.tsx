@@ -1,5 +1,6 @@
 import AdminNavbar from "./AdminNavbar";
 import ClubNavbar from "./ClubNavbar";
+import Menu from "./Menu";
 import SocioNavbar from "./SocioNavbar";
 
 
