@@ -51,8 +51,7 @@ export default function ClubNavbar() {
   const [isExpanded, setIsExpanded] = React.useState(false)
   const [isMobileOpen, setIsMobileOpen] = React.useState(false)
   const navigate = useNavigate()
-  const logout = useAuthStore((state) => state.logout);
-
+  const logout = useAuthStore((state) => state.logout)
   const { club, isLoading } = useClub()
 
   if(isLoading){
@@ -63,9 +62,7 @@ export default function ClubNavbar() {
     return null
   }
 
-
   return (
-  
     <div className="flex h-screen bg-background">
       {/* Mobile Menu Button */}
       <Button
@@ -96,14 +93,13 @@ export default function ClubNavbar() {
             {isExpanded ? (
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                {club.image ? (
-                  <img src={club.image} alt={club.name} className="w-full h-full object-cover rounded-lg"/>
-                )
-              :
-              ( <span>
-                {club.name.charAt(0)}
-              </span>)
-              }
+                  {club.image ? (
+                    <img src={club.image} alt={club.name} className="w-full h-full object-cover rounded-lg"/>
+                  ) : (
+                    <span className="text-white font-bold">
+                      {club.name.charAt(0)}
+                    </span>
+                  )}
                 </div>
                 <span className="font-bold text-lg">Club</span>
               </div>
@@ -111,12 +107,11 @@ export default function ClubNavbar() {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 {club.image ? (
                   <img src={club.image} alt={club.name} className="w-full h-full object-cover rounded-lg"/>
-                )
-              :
-              ( <span>
-                {club.name.charAt(0)}
-              </span>)
-              }
+                ) : (
+                  <span className="text-white font-bold">
+                    {club.name.charAt(0)}
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -176,24 +171,23 @@ export default function ClubNavbar() {
                   {isExpanded && <span>Configuración</span>}
                 </Button>
                 <Button
-            variant="ghost"
-            className={`w-full justify-start h-12 ${
-              isExpanded ? 'px-4' : 'px-2 justify-center'
-            } hover:bg-accent hover:text-accent-foreground`}
-            onClick={() => {
-              logout();
-              navigate("/");
-            }}
-          >
-            <LogOut className="h-5 w-5" />
-            {isExpanded && <span className="ml-3">Cerrar sesión</span>}
-          </Button>
+                  variant="ghost"
+                  className={`w-full justify-start h-12 ${
+                    isExpanded ? 'px-4' : 'px-2 justify-center'
+                  } hover:bg-accent hover:text-accent-foreground`}
+                  onClick={() => {
+                    logout();
+                    navigate("/");
+                  }}
+                >
+                  <LogOut className="h-5 w-5" />
+                  {isExpanded && <span className="ml-3">Cerrar sesión</span>}
+                </Button>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
   )
 }

@@ -125,12 +125,11 @@ const ClubDashboard = () => {
     isLoading: isProductsLoading, 
     error: productsError,
     products,
-    getAllProducts,
     createProduct,
     updateProduct,
     deleteProduct,
     updateStock
-  } = useProducts()
+  } = useProducts(profile?.data?.clubId)
   const { 
     socios, 
     isLoading: isSociosLoading, 
@@ -148,18 +147,10 @@ const ClubDashboard = () => {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
 
   useEffect(() => {
-    const loadData = async () => {
-      if (club?.id) {
-        await loadProducts()
-        await getAllSocios()
-      }
+    if (club?.id) {
+      getAllSocios()
     }
-    loadData()
   }, [club?.id])
-
-  const loadProducts = async () => {
-    await getAllProducts(club?.id)
-  }
 
   const handleCreateProduct = async (formData: FormData) => {
     if (!profile?.data?.clubId) {
@@ -179,10 +170,11 @@ const ClubDashboard = () => {
       clubId: profile.data.clubId
     }
 
-    const newProduct = await createProduct(productData)
-    if (newProduct) {
-      await loadProducts()
+    try {
+      await createProduct(productData)
       setIsAddProductOpen(false)
+    } catch (error) {
+      console.error('Error al crear el producto:', error)
     }
   }
 
@@ -201,28 +193,31 @@ const ClubDashboard = () => {
       image: formData.get('image') as File | undefined
     }
 
-    const updatedProduct = await updateProduct(productData)
-    if (updatedProduct) {
-      await loadProducts()
+    try {
+      await updateProduct(productData)
       setIsEditProductOpen(false)
       setSelectedProduct(null)
+    } catch (error) {
+      console.error('Error al actualizar el producto:', error)
     }
   }
 
   const handleDeleteProduct = async (id: string) => {
     const confirmed = window.confirm('¿Estás seguro de que deseas eliminar este producto?')
     if (confirmed) {
-      const success = await deleteProduct(id)
-      if (success) {
-        await loadProducts()
+      try {
+        await deleteProduct(id)
+      } catch (error) {
+        console.error('Error al eliminar el producto:', error)
       }
     }
   }
 
   const handleUpdateStock = async (id: string, newStock: number) => {
-    const updatedProduct = await updateStock(id, newStock)
-    if (updatedProduct) {
-      await loadProducts()
+    try {
+      await updateStock(id, newStock)
+    } catch (error) {
+      console.error('Error al actualizar el stock:', error)
     }
   }
 

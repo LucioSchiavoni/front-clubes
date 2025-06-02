@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { productApi } from '@/api/product'
 
 export interface Product {
@@ -21,144 +22,104 @@ export interface Product {
   } | null
 }
 
-interface CreateProductData {
-  name: string
-  description: string
-  price: number
-  category: string
-  thc: number
-  CBD: number
-  stock: number
-  image?: File
-}
-
 // interface UpdateProductData extends Partial<CreateProductData> {
 //   id: string
 // }
 
-interface ApiResponse<T> {
-  success: boolean
-  statusCode: number
-  message: string
-  data: T
-}
-
-export const useProducts = () => {
-  const [isLoading, setIsLoading] = useState(false)
+export const useProducts = (clubId?: string) => {
+  const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
-  const [products, setProducts] = useState<Product[]>([])
 
-  const getAllProducts = useCallback(async (id:string): Promise<Product[]> => {
-    try {
-      setIsLoading(true)
-      const response = await productApi.getAllProducts(id)
-      const productsArray = Array.isArray(response.data) ? response.data : []
-      setProducts(productsArray)
-      return productsArray
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
-      return []
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+  // Query para obtener todos los productos
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ['products', clubId],
+    queryFn: async () => {
+      if (!clubId) return []
+      try {
+        const response = await productApi.getAllProducts(clubId)
+        return Array.isArray(response.data) ? response.data : []
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido')
+        return []
+      }
+    },
+    enabled: !!clubId
+  })
 
-  const getProductById = async (id: string): Promise<Product | null> => {
+  // Query para obtener un producto específico
+  const getProductById = useCallback(async (id: string): Promise<Product | null> => {
     try {
-      setIsLoading(true)
       const response = await productApi.getProductById(id)
       return response.data
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
       return null
-    } finally {
-      setIsLoading(false)
     }
-  }
+  }, [])
 
-  const createProduct = async (productData: Parameters<typeof productApi.createProduct>[0]): Promise<Product | null> => {
-    try {
-      setIsLoading(true)
-      const response = await productApi.createProduct(productData)
-      if (response.data) {
-        setProducts(currentProducts => {
-          const productsArray = Array.isArray(currentProducts) ? currentProducts : []
-          return [...productsArray, response.data]
-        })
-      }
-      return response.data
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
-      return null
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const updateProduct = async (productData: Parameters<typeof productApi.updateProduct>[0]): Promise<Product | null> => {
-    try {
-      setIsLoading(true)
-      const response = await productApi.updateProduct(productData)
-      if (response.data) {
-        setProducts(currentProducts => {
-          const productsArray = Array.isArray(currentProducts) ? currentProducts : []
-          return productsArray.map(p => p.id === response.data.id ? response.data : p)
-        })
-      }
-      return response.data
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
-      return null
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const deleteProduct = async (id: string): Promise<boolean> => {
-    try {
-      setIsLoading(true)
-      await productApi.deleteProduct(id)
-      setProducts(currentProducts => {
-        const productsArray = Array.isArray(currentProducts) ? currentProducts : []
-        return productsArray.filter(p => p.id !== id)
+  // Mutación para crear un producto
+  const createProductMutation = useMutation({
+    mutationFn: (productData: Parameters<typeof productApi.createProduct>[0]) => 
+      productApi.createProduct(productData),
+    onSuccess: (response) => {
+      queryClient.setQueryData(['products', clubId], (oldData: Product[] = []) => {
+        return [...oldData, response.data]
       })
-      return true
-    } catch (err) {
+    },
+    onError: (err) => {
       setError(err instanceof Error ? err.message : 'Error desconocido')
-      return false
-    } finally {
-      setIsLoading(false)
     }
-  }
+  })
 
-  const updateStock = async (id: string, stock: number): Promise<Product | null> => {
-    try {
-      setIsLoading(true)
-      const response = await productApi.updateStock(id, stock)
-      if (response.data) {
-        setProducts(currentProducts => {
-          const productsArray = Array.isArray(currentProducts) ? currentProducts : []
-          return productsArray.map(p => p.id === response.data.id ? response.data : p)
-        })
-      }
-      return response.data
-    } catch (err) {
+  // Mutación para actualizar un producto
+  const updateProductMutation = useMutation({
+    mutationFn: (productData: Parameters<typeof productApi.updateProduct>[0]) => 
+      productApi.updateProduct(productData),
+    onSuccess: (response) => {
+      queryClient.setQueryData(['products', clubId], (oldData: Product[] = []) => {
+        return oldData.map(p => p.id === response.data.id ? response.data : p)
+      })
+    },
+    onError: (err) => {
       setError(err instanceof Error ? err.message : 'Error desconocido')
-      return null
-    } finally {
-      setIsLoading(false)
     }
-  }
+  })
+
+  // Mutación para eliminar un producto
+  const deleteProductMutation = useMutation({
+    mutationFn: (id: string) => productApi.deleteProduct(id),
+    onSuccess: (_, id) => {
+      queryClient.setQueryData(['products', clubId], (oldData: Product[] = []) => {
+        return oldData.filter(p => p.id !== id)
+      })
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : 'Error desconocido')
+    }
+  })
+
+  // Mutación para actualizar el stock
+  const updateStockMutation = useMutation({
+    mutationFn: ({ id, stock }: { id: string; stock: number }) => 
+      productApi.updateStock(id, stock),
+    onSuccess: (response) => {
+      queryClient.setQueryData(['products', clubId], (oldData: Product[] = []) => {
+        return oldData.map(p => p.id === response.data.id ? response.data : p)
+      })
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : 'Error desconocido')
+    }
+  })
 
   return {
     isLoading,
     error,
     products,
-    getAllProducts,
     getProductById,
-    createProduct,
-    updateProduct,
-    deleteProduct,
-    updateStock
+    createProduct: createProductMutation.mutate,
+    updateProduct: updateProductMutation.mutate,
+    deleteProduct: deleteProductMutation.mutate,
+    updateStock: (id: string, stock: number) => updateStockMutation.mutate({ id, stock })
   }
 } 

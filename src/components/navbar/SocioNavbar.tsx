@@ -1,13 +1,15 @@
 "use client"
 
 import * as React from "react"
-import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X } from "lucide-react"
+import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X, LogOut, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ThemeSwitch } from "../theme-switch"
+import { useAuthStore } from "@/store/auth"
+import { useNavigate } from "react-router-dom"
 
 const navigationItems = [
   {
@@ -47,10 +49,16 @@ const navigationItems = [
 export default function SocioNavbar() {
   const [isExpanded, setIsExpanded] = React.useState(false)
   const [isMobileOpen, setIsMobileOpen] = React.useState(false)
+  const navigate = useNavigate()
+  const logout = useAuthStore((state) => state.logout)
+  const { profile } = useAuthStore()
+
+  if (!profile?.data) {
+    return null
+  }
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Mobile Menu Button */}
       <Button
         variant="outline"
         size="icon"
@@ -73,21 +81,31 @@ export default function SocioNavbar() {
           ${isExpanded ? "w-80" : "w-16 lg:w-20"}
         `}
         onMouseEnter={() => setIsExpanded(true)}
-        onMouseLeave={() => setIsExpanded(false)}
-      >
-        {/* Logo */}
+        onMouseLeave={() => setIsExpanded(false)}>
         <div className="flex items-center justify-center h-16 border-b border-border">
           <div className={`transition-all duration-300 ${isExpanded ? "scale-100" : "scale-75"}`}>
             {isExpanded ? (
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">CC</span>
+                  {profile.data.image ? (
+                    <img src={profile.data.image} alt={profile.data.name} className="w-full h-full object-cover rounded-lg"/>
+                  ) : (
+                    <span className="text-white font-bold">
+                      {profile.data.name.charAt(0)}
+                    </span>
+                  )}
                 </div>
-                <span className="font-bold text-lg">CannaClub</span>
+                <span className="font-bold text-lg">{profile.data.name}</span>
               </div>
             ) : (
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">CC</span>
+                {profile.data.image ? (
+                  <img src={profile.data.image} alt={profile.data.name} className="w-full h-full object-cover rounded-lg"/>
+                ) : (
+                  <span className="text-white font-bold">
+                    {profile.data.name.charAt(0)}
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -116,9 +134,7 @@ export default function SocioNavbar() {
                     w-full justify-start h-12 transition-all duration-200
                     ${isExpanded ? "px-4" : "px-0 justify-center"}
                     hover:bg-accent hover:text-accent-foreground
-                    group relative overflow-hidden
-                  `}
-                >
+                    group relative overflow-hidden`}>
                   <item.icon className={`h-5 w-5 ${isExpanded ? "mr-3" : ""} transition-all duration-200`} />
                   {isExpanded && (
                     <>
@@ -134,22 +150,32 @@ export default function SocioNavbar() {
                 </Button>
               ))}
             </div>
-
-            {/* Bottom Actions */}
             <div className="absolute bottom-4 left-2 right-2">
               <Separator className="mb-4" />
               <div className="space-y-1 flex flex-col justify-center items-center">
                 <ThemeSwitch />
                 <Button
                   variant="ghost"
+                  onClick={() => navigate(`/config/${profile.data.id}`)}
                   className={`
                     w-full justify-start h-12
                     ${isExpanded ? "px-4" : "px-0 justify-center"}
-                    hover:bg-accent hover:text-accent-foreground
-                  `}
-                >
+                    hover:bg-accent hover:text-accent-foreground`} >
                   <Settings className={`h-5 w-5 ${isExpanded ? "mr-3" : ""}`} />
                   {isExpanded && <span>Configuración</span>}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className={`w-full justify-start h-12 ${
+                    isExpanded ? 'px-4' : 'px-2 justify-center'
+                  } hover:bg-accent hover:text-accent-foreground`}
+                  onClick={() => {
+                    logout();
+                    navigate("/");
+                  }}
+                >
+                  <LogOut className="h-5 w-5" />
+                  {isExpanded && <span className="ml-3">Cerrar sesión</span>}
                 </Button>
               </div>
             </div>

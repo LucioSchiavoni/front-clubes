@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
   Calendar,
   ShoppingCart,
@@ -15,11 +15,9 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Zap,
-  Award,
-  Flame,
+  LogOut,
 } from "lucide-react"
-import Image from "next/image"
+
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -30,117 +28,48 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
+import { useClub } from "@/hooks/useClub"
+import { useProducts } from "@/hooks/useProducts"
+import { useAuthStore } from "@/store/auth"
 
-// Datos de ejemplo de productos
-const products = [
-  {
-    id: 1,
-    name: "Purple Haze Premium",
-    description: "Variedad sativa premium con notas florales y cítricas. Perfecta para uso diurno.",
-    price: 45,
-    image: "/placeholder.svg?height=400&width=400",
-    category: "Sativa",
-    thc: "22%",
-    cbd: "1%",
-    rating: 4.8,
-    reviews: 124,
-    stock: 15,
-    featured: true,
-    effects: ["Creativo", "Energético", "Eufórico"],
-    rarity: "Legendary",
-  },
-  {
-    id: 2,
-    name: "OG Kush Classic",
-    description: "Híbrida clásica con efectos relajantes y sabor terroso. Ideal para la noche.",
-    price: 40,
-    image: "/placeholder.svg?height=400&width=400",
-    category: "Híbrida",
-    thc: "20%",
-    cbd: "2%",
-    rating: 4.9,
-    reviews: 89,
-    stock: 8,
-    featured: false,
-    effects: ["Relajante", "Feliz", "Sedante"],
-    rarity: "Epic",
-  },
-  {
-    id: 3,
-    name: "Blue Dream Deluxe",
-    description: "Sativa dominante con sabor dulce y efectos creativos. Muy popular entre artistas.",
-    price: 50,
-    image: "/placeholder.svg?height=400&width=400",
-    category: "Sativa",
-    thc: "24%",
-    cbd: "1.5%",
-    rating: 4.7,
-    reviews: 156,
-    stock: 12,
-    featured: true,
-    effects: ["Creativo", "Inspirador", "Social"],
-    rarity: "Legendary",
-  },
-  {
-    id: 4,
-    name: "Northern Lights",
-    description: "Indica pura con efectos profundamente relajantes. Perfecta para descanso.",
-    price: 38,
-    image: "/placeholder.svg?height=400&width=400",
-    category: "Indica",
-    thc: "18%",
-    cbd: "3%",
-    rating: 4.6,
-    reviews: 78,
-    stock: 20,
-    featured: false,
-    effects: ["Relajante", "Sedante", "Calmante"],
-    rarity: "Rare",
-  },
-  {
-    id: 5,
-    name: "Green Crack Energy",
-    description: "Sativa energizante con sabor cítrico. Ideal para actividades creativas.",
-    price: 42,
-    image: "/placeholder.svg?height=400&width=400",
-    category: "Sativa",
-    thc: "21%",
-    cbd: "1%",
-    rating: 4.5,
-    reviews: 92,
-    stock: 6,
-    featured: false,
-    effects: ["Energético", "Concentración", "Motivador"],
-    rarity: "Epic",
-  },
-  {
-    id: 6,
-    name: "White Widow Premium",
-    description: "Híbrida equilibrada con cristales blancos. Efectos balanceados y duraderos.",
-    price: 48,
-    image: "/placeholder.svg?height=400&width=400",
-    category: "Híbrida",
-    thc: "23%",
-    cbd: "2%",
-    rating: 4.8,
-    reviews: 134,
-    stock: 10,
-    featured: true,
-    effects: ["Equilibrado", "Eufórico", "Creativo"],
-    rarity: "Legendary",
-  },
-]
+interface Product {
+  id: string
+  name: string
+  description: string
+  image: string | null
+  price: number
+  category: string
+  thc: number
+  CBD: number
+  stock: number
+  active: boolean
+  createdAt: string
+  updatedAt: string
+  clubId: string | null
+  club?: {
+    id: string
+    name: string
+  } | null
+}
+
+interface CartItem extends Product {
+  quantity: number
+}
 
 export default function Component() {
-  const [cart, setCart] = useState([])
-  const [selectedDate, setSelectedDate] = useState(null)
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedTime, setSelectedTime] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
-  const [favorites, setFavorites] = useState([])
-  const carouselRef = useRef(null)
+  const [favorites, setFavorites] = useState<string[]>([])
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const { profile } = useAuthStore()
+  const { products, isLoading } = useProducts(profile?.data?.clubId)
+  const { club } = useClub()
+  const { logout } = useAuthStore()
 
-  const addToCart = (product) => {
+  const addToCart = (product: Product) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id)
       if (existing) {
@@ -150,11 +79,11 @@ export default function Component() {
     })
   }
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = (productId: string) => {
     setCart((prev) => prev.filter((item) => item.id !== productId))
   }
 
-  const updateQuantity = (productId, newQuantity) => {
+  const updateQuantity = (productId: string, newQuantity: number) => {
     if (newQuantity === 0) {
       removeFromCart(productId)
       return
@@ -162,11 +91,11 @@ export default function Component() {
     setCart((prev) => prev.map((item) => (item.id === productId ? { ...item, quantity: newQuantity } : item)))
   }
 
-  const toggleFavorite = (productId) => {
+  const toggleFavorite = (productId: string) => {
     setFavorites((prev) => (prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]))
   }
 
-  const scrollCarousel = (direction) => {
+  const scrollCarousel = (direction: string) => {
     if (carouselRef.current) {
       const scrollAmount = 400
       carouselRef.current.scrollBy({
@@ -185,19 +114,27 @@ export default function Component() {
     return matchesSearch && matchesCategory
   })
 
-  const featuredProducts = filteredProducts.filter((p) => p.featured)
+  const featuredProducts = filteredProducts.filter((p) => p.active)
   const allProducts = filteredProducts
 
   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0)
   const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0)
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen ">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-3/4 left-1/2 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-3/4 left-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
       {/* Header */}
@@ -213,17 +150,28 @@ export default function Component() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
-                  Green Club
+                  {club?.name || "Club"}
                 </h1>
-                <p className="text-sm text-gray-400">Premium Cannabis Marketplace</p>
+                <p className="text-sm text-gray-400">Cannabis Marketplace</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl rounded-full px-6 py-3 border border-white/20">
-                <User className="w-5 h-5 text-emerald-400" />
-                <span className="text-sm font-medium text-white">Socio Premium</span>
-              </div>
+              {profile && (
+                <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl rounded-full px-6 py-3 border border-white/20">
+                  <User className="w-5 h-5 text-emerald-400" />
+                  <span className="text-sm font-medium text-white">{profile.name || "Usuario"}</span>
+                </div>
+              )}
+
+              <Button
+                variant="outline"
+                size="icon"
+                className="bg-white/10 backdrop-blur-xl border-white/20 hover:bg-white/20 text-white"
+                onClick={logout}
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
 
               <Sheet>
                 <SheetTrigger asChild>
@@ -257,12 +205,10 @@ export default function Component() {
                             key={item.id}
                             className="flex items-center space-x-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10"
                           >
-                            <Image
+                            <img
                               src={item.image || "/placeholder.svg"}
                               alt={item.name}
-                              width={50}
-                              height={50}
-                              className="rounded-lg"
+                              className="w-[50px] h-[50px] rounded-lg object-cover"
                             />
                             <div className="flex-1">
                               <h4 className="font-medium text-sm text-white">{item.name}</h4>
@@ -316,8 +262,8 @@ export default function Component() {
                             <div className="space-y-4">
                               <CalendarComponent
                                 mode="single"
-                                selected={selectedDate}
-                                onSelect={setSelectedDate}
+                                selected={selectedDate || undefined}
+                                onSelect={(date) => setSelectedDate(date || null)}
                                 className="rounded-md border border-white/10 bg-white/5"
                               />
                               <Select value={selectedTime} onValueChange={setSelectedTime}>
@@ -448,42 +394,18 @@ export default function Component() {
   )
 }
 
-function FeaturedProductCard({ product, onAddToCart, onToggleFavorite, isFavorite }) {
-  const getRarityColor = (rarity) => {
-    switch (rarity) {
-      case "Legendary":
-        return "from-amber-400 to-orange-500"
-      case "Epic":
-        return "from-purple-400 to-pink-500"
-      case "Rare":
-        return "from-blue-400 to-cyan-500"
-      default:
-        return "from-gray-400 to-gray-500"
-    }
-  }
+interface ProductCardProps {
+  product: Product
+  onAddToCart: (product: Product) => void
+  onToggleFavorite: (id: string) => void
+  isFavorite: boolean
+}
 
-  const getRarityIcon = (rarity) => {
-    switch (rarity) {
-      case "Legendary":
-        return <Award className="w-4 h-4" />
-      case "Epic":
-        return <Zap className="w-4 h-4" />
-      case "Rare":
-        return <Flame className="w-4 h-4" />
-      default:
-        return <Star className="w-4 h-4" />
-    }
-  }
-
+function FeaturedProductCard({ product, onAddToCart, onToggleFavorite, isFavorite }: ProductCardProps) {
   return (
     <Card className="group relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 shadow-2xl hover:shadow-emerald-500/25 transition-all duration-700 hover:-translate-y-4 hover:scale-105">
-      {/* Animated Border - Always visible with subtle glow */}
+      {/* Animated Border */}
       <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-green-500/20 to-emerald-500/20 group-hover:from-emerald-500/50 group-hover:via-green-500/50 group-hover:to-emerald-500/50 transition-all duration-500 blur-sm"></div>
-
-      {/* Rarity Glow - Always visible but intensifies on hover */}
-      <div
-        className={`absolute inset-0 bg-gradient-to-br ${getRarityColor(product.rarity)} opacity-10 group-hover:opacity-20 transition-opacity duration-500`}
-      ></div>
 
       {/* Favorite Button */}
       <Button
@@ -495,33 +417,15 @@ function FeaturedProductCard({ product, onAddToCart, onToggleFavorite, isFavorit
         <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-white"}`} />
       </Button>
 
-      {/* Rarity Badge */}
-      <Badge
-        className={`absolute top-4 left-4 z-20 bg-gradient-to-r ${getRarityColor(product.rarity)} text-white border-0 shadow-lg`}
-      >
-        {getRarityIcon(product.rarity)}
-        <span className="ml-1">{product.rarity}</span>
-      </Badge>
-
       <CardContent className="p-0 relative z-10">
-        {/* Image with Holographic Effect */}
+        {/* Image */}
         <div className="relative h-80 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10"></div>
-          <Image
+          <img
             src={product.image || "/placeholder.svg"}
             alt={product.name}
-            fill
-            className="object-cover transition-all duration-1000 group-hover:scale-110 group-hover:rotate-2"
+            className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 group-hover:rotate-2"
           />
-
-          {/* Holographic Overlay - Always visible but subtle */}
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-purple-500/10 group-hover:from-emerald-500/20 group-hover:to-purple-500/20 transition-all duration-500"></div>
-
-          {/* Floating Effects - Always visible */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-30 group-hover:opacity-100 transition-all duration-500">
-            <div className="w-32 h-32 border-2 border-emerald-400/50 rounded-full animate-spin-slow"></div>
-            <div className="absolute inset-4 border border-emerald-400/30 rounded-full animate-pulse"></div>
-          </div>
         </div>
 
         {/* Content */}
@@ -545,49 +449,21 @@ function FeaturedProductCard({ product, onAddToCart, onToggleFavorite, isFavorit
             {product.name}
           </h3>
 
-          {/* Description - Always visible */}
+          {/* Description */}
           <p className="text-gray-300 text-sm line-clamp-2">{product.description}</p>
-
-          {/* Effects Pills - Always visible */}
-          <div className="flex flex-wrap gap-2">
-            {product.effects.slice(0, 3).map((effect, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 text-xs font-medium bg-white/10 backdrop-blur-xl text-white rounded-full border border-white/20"
-              >
-                {effect}
-              </span>
-            ))}
-          </div>
 
           {/* THC/CBD Info */}
           <div className="flex items-center space-x-6 text-sm">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
               <span className="font-medium text-emerald-400">THC:</span>
-              <span className="text-white font-bold">{product.thc}</span>
+              <span className="text-white font-bold">{product.thc}%</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
               <span className="font-medium text-purple-400">CBD:</span>
-              <span className="text-white font-bold">{product.cbd}</span>
+              <span className="text-white font-bold">{product.CBD}%</span>
             </div>
-          </div>
-
-          {/* Rating */}
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-1">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-4 h-4 ${
-                    i < Math.floor(product.rating) ? "fill-amber-400 text-amber-400" : "text-gray-600"
-                  }`}
-                />
-              ))}
-              <span className="font-medium text-white ml-2">{product.rating}</span>
-            </div>
-            <span className="text-gray-400 text-sm">({product.reviews} reseñas)</span>
           </div>
 
           {/* Price & Action */}
@@ -611,23 +487,10 @@ function FeaturedProductCard({ product, onAddToCart, onToggleFavorite, isFavorit
   )
 }
 
-function ModernProductCard({ product, onAddToCart, onToggleFavorite, isFavorite }) {
-  const getRarityColor = (rarity) => {
-    switch (rarity) {
-      case "Legendary":
-        return "from-amber-400 to-orange-500"
-      case "Epic":
-        return "from-purple-400 to-pink-500"
-      case "Rare":
-        return "from-blue-400 to-cyan-500"
-      default:
-        return "from-gray-400 to-gray-500"
-    }
-  }
-
+function ModernProductCard({ product, onAddToCart, onToggleFavorite, isFavorite }: ProductCardProps) {
   return (
     <Card className="group relative overflow-hidden bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-      {/* Animated Background - Always visible but subtle */}
+      {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-purple-500/5 group-hover:from-emerald-500/10 group-hover:to-purple-500/10 transition-all duration-500"></div>
 
       {/* Favorite Button */}
@@ -640,21 +503,17 @@ function ModernProductCard({ product, onAddToCart, onToggleFavorite, isFavorite 
         <Heart className={`w-4 h-4 ${isFavorite ? "fill-red-500 text-red-500" : "text-white"}`} />
       </Button>
 
-      {/* Rarity Indicator */}
-      <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${getRarityColor(product.rarity)}`}></div>
-
       <CardContent className="p-0 relative z-10">
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
-          <Image
+          <img
             src={product.image || "/placeholder.svg"}
             alt={product.name}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
 
-          {/* Stock indicator - Always visible */}
+          {/* Stock indicator */}
           <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-xl rounded-full px-2 py-1">
             <span className="text-xs text-white">{product.stock} disponibles</span>
           </div>
@@ -662,13 +521,10 @@ function ModernProductCard({ product, onAddToCart, onToggleFavorite, isFavorite 
 
         {/* Content */}
         <div className="p-4 space-y-3">
-          {/* Category & Rarity */}
+          {/* Category */}
           <div className="flex items-center justify-between">
             <Badge variant="outline" className="border-emerald-400/50 text-emerald-400 bg-emerald-500/10">
               {product.category}
-            </Badge>
-            <Badge className={`bg-gradient-to-r ${getRarityColor(product.rarity)} text-white text-xs`}>
-              {product.rarity}
             </Badge>
           </div>
 
@@ -677,35 +533,19 @@ function ModernProductCard({ product, onAddToCart, onToggleFavorite, isFavorite 
             {product.name}
           </h3>
 
-          {/* Description - Always visible */}
+          {/* Description */}
           <p className="text-gray-300 text-xs line-clamp-2">{product.description}</p>
-
-          {/* Effects - Always visible */}
-          <div className="flex flex-wrap gap-1">
-            {product.effects.slice(0, 2).map((effect: any, index:number) => (
-              <span key={index} className="px-2 py-1 text-xs bg-white/10 text-gray-300 rounded-full">
-                {effect}
-              </span>
-            ))}
-          </div>
 
           {/* THC/CBD */}
           <div className="flex items-center space-x-4 text-sm">
             <div className="flex items-center space-x-1">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              <span className="text-emerald-400 font-medium">THC: {product.thc}</span>
+              <span className="text-emerald-400 font-medium">THC: {product.thc}%</span>
             </div>
             <div className="flex items-center space-x-1">
               <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-              <span className="text-purple-400 font-medium">CBD: {product.cbd}</span>
+              <span className="text-purple-400 font-medium">CBD: {product.CBD}%</span>
             </div>
-          </div>
-
-          {/* Rating */}
-          <div className="flex items-center space-x-2">
-            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-            <span className="text-white text-sm">{product.rating}</span>
-            <span className="text-gray-400 text-xs">({product.reviews})</span>
           </div>
 
           {/* Price & Action */}
