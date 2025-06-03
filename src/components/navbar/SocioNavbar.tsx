@@ -1,7 +1,5 @@
-"use client"
-
 import * as React from "react"
-import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X, LogOut, Loader2 } from "lucide-react"
+import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X, LogOut } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
