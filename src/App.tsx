@@ -6,6 +6,7 @@ import BlogPage from "@/pages/blog";
 import AboutPage from "@/pages/about";
 import DashboardPage from "@/pages/dashboardPage";
 import ConfigPage from "./pages/configPage";
+import OrdersPage from "./pages/OrdersPage";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Route element={<DashboardPage />} path="/dashboard" />
       <Route element={<PricingPage />} path="/pricing" />
       <Route element={<ConfigPage />} path="/config/:clubId" />
+      <Route element={<OrdersPage/>} path="/orders" /> 
       <Route element={<BlogPage />} path="/blog" />
       <Route element={<AboutPage />} path="/about" />
     </Routes>

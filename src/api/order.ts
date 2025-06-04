@@ -3,6 +3,7 @@ import type { CartItem } from '@/types/cart'
 
 export interface ReservationData {
   items: CartItem[]
+  userId: string
   date: Date
   time: string
   comment?: string
@@ -17,3 +18,13 @@ export const createOrder = async (data: ReservationData) => {
     throw new Error('Error al crear la reserva')
   }
 } 
+
+export const getOrderByUserId = async(userId: string) => {
+  try {
+    const res = await instance.get(`/order/${userId}`)
+    return res.data
+  } catch (error) {
+    console.error('Error fetching orders:', error)
+    throw new Error('Error al obtener las reservas del usuario')
+  }
+}

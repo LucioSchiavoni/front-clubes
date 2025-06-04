@@ -24,6 +24,7 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createOrder, type ReservationData } from '@/api/order'
+import { useAuthStore } from '@/store/auth'
 
 interface ShoppingCartProps {
   cart: CartItem[]
@@ -45,6 +46,7 @@ const ShoppingCartComponent = ({
   const [isDateOpen, setIsDateOpen] = useState(false)
   const [isTimeOpen, setIsTimeOpen] = useState(false)
   const [comment, setComment] = useState('')
+  const {profile} = useAuthStore()
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate)
@@ -71,13 +73,13 @@ const ShoppingCartComponent = ({
     if (!date || !time) return
 
     const reservationData: ReservationData = {
+      userId: profile?.data.id,
       items: cart,
       date,
       time,
       comment,
       total: cartTotal
     }
-    console.log(reservationData)
     submitReservation(reservationData)
 
   }
