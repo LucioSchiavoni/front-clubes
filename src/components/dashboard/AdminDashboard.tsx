@@ -94,54 +94,54 @@ const AdminDashboard = () => {
 
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background text-foreground">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-background dark:bg-slate-950 text-foreground dark:text-slate-100">
       {/* Main Content */}
       <main className="flex-1 p-4 sm:p-6">
         {/* Featured Carousel Section */}
         <div className="mb-6 sm:mb-8">
           <div className="relative">
-            <Card className="bg-card border-border overflow-hidden">
+            <Card className="bg-card dark:bg-slate-900 border-border dark:border-slate-800 overflow-hidden">
               <div
                 className={`relative h-48 sm:h-80 bg-gradient-to-r ${featuredItems[currentSlide].color} transition-all duration-500`}
               >
-                <div className="absolute inset-0 bg-black/40" />
+                <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
 
                 {/* Carousel Navigation Arrows */}
                 <button
                   onClick={prevSlide}
-                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 p-1.5 sm:p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 p-1.5 sm:p-2 rounded-full bg-black/50 dark:bg-black/70 hover:bg-black/70 dark:hover:bg-black/90 transition-colors"
                 >
-                  <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
+                  <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                 </button>
 
                 <button
                   onClick={nextSlide}
-                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 p-1.5 sm:p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 p-1.5 sm:p-2 rounded-full bg-black/50 dark:bg-black/70 hover:bg-black/70 dark:hover:bg-black/90 transition-colors"
                 >
-                  <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
+                  <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                 </button>
 
                 {/* Carousel Content */}
                 <div className="relative z-10 p-4 sm:p-8 h-full flex flex-col justify-center">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:space-x-2 mb-2 sm:mb-4">
-                    <h2 className="text-xl sm:text-3xl font-bold">{featuredItems[currentSlide].title}</h2>
-                    <Badge variant="secondary" className="bg-primary w-fit">
+                    <h2 className="text-xl sm:text-3xl font-bold text-white">{featuredItems[currentSlide].title}</h2>
+                    <Badge variant="secondary" className="bg-primary dark:bg-primary/80 w-fit">
                       {featuredItems[currentSlide].stats.active}
                     </Badge>
                   </div>
-                  <p className="text-sm sm:text-lg text-muted-foreground mb-4 sm:mb-8">{featuredItems[currentSlide].description}</p>
+                  <p className="text-sm sm:text-lg text-muted-foreground dark:text-slate-300 mb-4 sm:mb-8">{featuredItems[currentSlide].description}</p>
                   <div className="grid grid-cols-3 gap-4 sm:gap-8">
                     <div>
-                      <p className="text-xs sm:text-sm text-muted-foreground">TOTAL</p>
-                      <p className="text-lg sm:text-2xl font-bold">{featuredItems[currentSlide].stats.total}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground dark:text-slate-400">TOTAL</p>
+                      <p className="text-lg sm:text-2xl font-bold text-white">{featuredItems[currentSlide].stats.total}</p>
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm text-muted-foreground">ACTIVOS</p>
-                      <p className="text-lg sm:text-2xl font-bold">{featuredItems[currentSlide].stats.active}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground dark:text-slate-400">ACTIVOS</p>
+                      <p className="text-lg sm:text-2xl font-bold text-white">{featuredItems[currentSlide].stats.active}</p>
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm text-muted-foreground">CRECIMIENTO</p>
-                      <p className="text-lg sm:text-2xl font-bold text-green-400">{featuredItems[currentSlide].stats.growth}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground dark:text-slate-400">CRECIMIENTO</p>
+                      <p className="text-lg sm:text-2xl font-bold text-green-400 dark:text-green-300">{featuredItems[currentSlide].stats.growth}</p>
                     </div>
                   </div>
                 </div>
@@ -197,7 +197,7 @@ const AdminDashboard = () => {
             {(showAllModules ? featuredItems : featuredItems.slice(0, 4)).map((item, index) => (
               <Card
                 key={index}
-                className={`bg-card border-border overflow-hidden group hover:bg-accent transition-all duration-300 cursor-pointer ${
+                className={`bg-card dark:bg-slate-900 border-border dark:border-slate-800 overflow-hidden group hover:bg-accent transition-all duration-300 cursor-pointer ${
                   index === currentSlide ? "ring-2 ring-primary" : ""
                 }`}
                 onClick={() => goToSlide(index)}
@@ -219,10 +219,10 @@ const AdminDashboard = () => {
                       ✓
                     </Badge>
                   </h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">{item.description}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground dark:text-slate-300 mb-2 sm:mb-3">{item.description}</p>
                   <div className="flex justify-between text-xs sm:text-sm">
-                    <span className="text-muted-foreground">Total: {item.stats.total}</span>
-                    <span className="text-green-400">{item.stats.growth}</span>
+                    <span className="text-muted-foreground dark:text-slate-400">Total: {item.stats.total}</span>
+                    <span className="text-green-400 dark:text-green-300">{item.stats.growth}</span>
                   </div>
                 </CardContent>
               </Card>

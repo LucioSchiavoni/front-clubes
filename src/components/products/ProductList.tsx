@@ -22,6 +22,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2 } from 'lucide-react'
 import type { Product } from '@/hooks/useProducts'
 import ProductItem from './ProductItem'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface ProductListProps {
   products: Product[]
@@ -41,6 +48,7 @@ export const ProductList = ({
   onUpdateStock
 }: ProductListProps) => {
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
   if (isLoading) {
@@ -59,10 +67,16 @@ export const ProductList = ({
     )
   }
 
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = 
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = 
+      selectedCategory === "all" || product.category === selectedCategory
+    
+    
+    return matchesSearch && matchesCategory
+  })
 
   return (
     <>
@@ -88,10 +102,18 @@ export const ProductList = ({
                   className="pl-10 w-[300px] border-green-200 focus:border-green-500 rounded-xl"
                 />
               </div>
-              <Button variant="outline" size="sm" className="border-green-200 text-green-700 hover:bg-green-50 rounded-xl">
-                <Filter className="h-4 w-4 mr-2" />
-                Filtros
-              </Button>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-40 border-green-200 text-green-700 hover:bg-green-50 rounded-xl">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-green-200">
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="sativa">Sativa</SelectItem>
+                  <SelectItem value="indica">Indica</SelectItem>
+                  <SelectItem value="hibrida">Híbrida</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

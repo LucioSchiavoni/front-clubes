@@ -1,6 +1,8 @@
 import { useOrders } from "@/hooks/useOrders"
 import { OrderCard } from "./OrderCard"
 import { Loader2 } from "lucide-react"
+import { useAuthStore } from "@/store/auth"
+import type { Order } from "@/hooks/useOrders"
 
 interface Product {
   id: string
@@ -26,21 +28,9 @@ interface OrderItem {
   product: Product
 }
 
-interface Order {
-  id: string
-  userId: string
-  total: number
-  status: 'PENDING' | 'COMPLETED' | 'CANCELED'
-  createdAt: string
-  comment?: string
-  dateOrder: string
-  hourOrder: string
-  items: OrderItem[]
-}
-
 export const OrderList = () => {
-  const { orders, isLoading, error } = useOrders()
- 
+  const { profile } = useAuthStore()
+  const { orders, isLoading, error } = useOrders(profile?.data?.clubId || '')
 
   if (isLoading) {
     return (
@@ -53,7 +43,7 @@ export const OrderList = () => {
   if (error) {
     return (
       <div className="text-center text-red-500 py-8">
-        Error al cargar las órdenes
+        Error al cargar las órdenes: {error.message}
       </div>
     )
   }
@@ -61,7 +51,7 @@ export const OrderList = () => {
   if (!Array.isArray(orders) || orders.length === 0) {
     return (
       <div className="text-center text-gray-400 py-8">
-        No tienes órdenes pendientes
+        No hay órdenes pendientes
       </div>
     )
   }
@@ -69,7 +59,7 @@ export const OrderList = () => {
   return (
     <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {orders.map((order: Order) => (
-        <OrderCard key={order.createdAt} order={order} />
+        <OrderCard key={order.id} order={order} />
       ))}
     </div>
   )

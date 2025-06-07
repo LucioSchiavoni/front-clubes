@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useState } from "react"
+import type { Order } from "@/hooks/useOrders"
 
 interface Product {
   id: string
@@ -30,17 +31,7 @@ interface OrderItem {
 }
 
 interface OrderCardProps {
-  order: {
-    id: string
-    userId: string
-    total: number
-    status: 'PENDING' | 'COMPLETED' | 'CANCELED'
-    createdAt: string
-    comment?: string
-    dateOrder: string
-    hourOrder: string
-    items: OrderItem[]
-  }
+  order: Order
 }
 
 const statusColors = {
@@ -95,7 +86,7 @@ export const OrderCard = ({ order }: OrderCardProps) => {
 
           <Separator className="bg-white/10" />
 
-          <div className="space-y-3">
+          <div>
             <h4 className="text-sm font-medium text-gray-400">Productos Reservados:</h4>
             <div className="space-y-4">
               {order.items.map((item) => (
@@ -114,7 +105,7 @@ export const OrderCard = ({ order }: OrderCardProps) => {
                       </div>
                     )}
                   </div>
-                  <div className="flex-1 space-y-1">
+                  <div className="flex-1">
                     <h5 className="font-medium text-white">{item.product.name}</h5>
                     <p className="text-sm text-gray-400 line-clamp-2">{item.product.description}</p>
                     <div className="flex items-center gap-4 text-sm">

@@ -21,7 +21,7 @@ export const createOrder = async (data: ReservationData) => {
 
 export const getOrderByUserId = async(userId: string) => {
   try {
-    const res = await instance.get(`/order/${userId}`)
+    const res = await instance.get(`/order/club/${userId}`)
     return res.data
   } catch (error) {
     console.error('Error fetching orders:', error)

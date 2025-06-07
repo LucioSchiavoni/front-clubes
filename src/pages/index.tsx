@@ -5,8 +5,6 @@ export default function IndexPage() {
   return (
  <div>
 
-    <Menu/>
-
   
    <LoginForm/>
  </div>

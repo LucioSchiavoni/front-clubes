@@ -98,7 +98,9 @@ export default function Component() {
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory =
-      selectedCategory === "all" || product.category.toLowerCase() === selectedCategory.toLowerCase()
+      selectedCategory === "all" || product.category === selectedCategory
+    
+    
     return matchesSearch && matchesCategory
   })
 
@@ -117,30 +119,30 @@ export default function Component() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-3/4 left-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-sky-500/10 dark:bg-sky-500/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-3/4 left-1/2 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-2xl bg-black/20 border-b border-white/10">
+      <header className="sticky top-0 z-50 backdrop-blur-2xl bg-black/20 dark:bg-black/30 border-b border-white/10 dark:border-white/5">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-2xl">
+                <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 dark:from-emerald-500 dark:via-green-600 dark:to-emerald-700 rounded-2xl flex items-center justify-center shadow-2xl">
                   <span className="text-white font-bold text-xl">🌿</span>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-600 rounded-2xl blur opacity-50 animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-600 dark:from-emerald-500 dark:to-green-700 rounded-2xl blur opacity-50 animate-pulse"></div>
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 dark:from-emerald-500 dark:via-green-500 dark:to-emerald-600 bg-clip-text text-transparent">
                   {club?.name || "Club"}
                 </h1>
-                <p className="text-sm text-gray-400">Cannabis Marketplace</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500">Cannabis Marketplace</p>
               </div>
             </div>
 
@@ -196,7 +198,7 @@ export default function Component() {
                 <SelectItem value="all">Todas</SelectItem>
                 <SelectItem value="sativa">Sativa</SelectItem>
                 <SelectItem value="indica">Indica</SelectItem>
-                <SelectItem value="híbrida">Híbrida</SelectItem>
+                <SelectItem value="hibrida">Híbrida</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -278,10 +280,9 @@ interface ProductCardProps {
 
 function FeaturedProductCard({ product, onAddToCart, onToggleFavorite, isFavorite }: ProductCardProps) {
   return (
-    <Card className="group relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 shadow-2xl hover:shadow-emerald-500/25 transition-all duration-700 hover:-translate-y-4 hover:scale-105">
+    <Card className="group relative overflow-hidden  transition-all duration-700 hover:-translate-y-4 hover:scale-105">
       {/* Animated Border */}
       <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-green-500/20 to-emerald-500/20 group-hover:from-emerald-500/50 group-hover:via-green-500/50 group-hover:to-emerald-500/50 transition-all duration-500 blur-sm"></div>
-
       {/* Favorite Button */}
       <Button
         size="icon"
