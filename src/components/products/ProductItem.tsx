@@ -47,7 +47,7 @@ const ProductItem = ({ product, isOpen, onClose }: ProductItemProps) => {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-green-600">Categoría:</span>
-                <span className="font-medium text-green-800">{product.category}</span>
+                <span className="font-medium text-green-800 capitalize">{product.category}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-green-600">THC:</span>
@@ -70,7 +70,7 @@ const ProductItem = ({ product, isOpen, onClose }: ProductItemProps) => {
               {product.club && (
                 <div className="flex justify-between text-sm">
                   <span className="text-green-600">Club:</span>
-                  <span className="font-medium text-green-800">{product.club.name}</span>
+                  <span className="font-medium text-green-800 capitalize">{product.club.name}</span>
                 </div>
               )}
             </div>

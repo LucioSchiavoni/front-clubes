@@ -6,7 +6,7 @@ import {
   CheckCircle2,
   Clock,
 } from "lucide-react"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, startOfMonth, endOfMonth } from "date-fns"
 import { es } from "date-fns/locale"
 
 import { useAuthStore } from "@/store/auth"
@@ -138,13 +138,26 @@ const ClubDashboard = () => {
     await refetch()
   }
 
+  const calcularIngresosMes = () => {
+    const hoy = new Date()
+    const inicioMes = startOfMonth(hoy)
+    const finMes = endOfMonth(hoy)
+
+    return orders
+      .filter((order: Order) => {
+        const fechaOrden = parseISO(order.dateOrder)
+        return (
+          order.status === "COMPLETED" &&
+          fechaOrden >= inicioMes &&
+          fechaOrden <= finMes
+        )
+      })
+      .reduce((total: number, order: Order) => total + order.total, 0)
+  }
+
   if (!profile?.data?.clubId) {
     return <AddClubForm />
   }
-
-  useEffect(() => {
-    console.log("aqui la rodenes", orders)
-  })
 
   if (isClubLoading) {
     return (
@@ -194,13 +207,29 @@ const ClubDashboard = () => {
             totalReservas={orders.length}
             totalActivos={socios.filter((s) => s.active).length}
             clubImageUrl={club.image || "/default-club-image.png"}
+             totalGramos={products.reduce((total, product) => total + (product.stock || 0), 0)}
           />
 
           <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
-            <TabsList className="bg-slate-900 border-slate-800 w-full sm:w-auto">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-slate-800 text-slate-300 flex-1 sm:flex-none">Vista General</TabsTrigger>
-              <TabsTrigger value="products" className="data-[state=active]:bg-slate-800 text-slate-300 flex-1 sm:flex-none">Productos</TabsTrigger>
-              <TabsTrigger value="orders" className="data-[state=active]:bg-slate-800 text-slate-300 flex-1 sm:flex-none">Reservas</TabsTrigger>
+            <TabsList className="w-full sm:w-auto bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+              <TabsTrigger 
+                value="overview" 
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white text-slate-600 dark:text-slate-400"
+              >
+                Vista General
+              </TabsTrigger>
+              <TabsTrigger 
+                value="products" 
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white text-slate-600 dark:text-slate-400"
+              >
+                Productos
+              </TabsTrigger>
+              <TabsTrigger 
+                value="orders" 
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white text-slate-600 dark:text-slate-400"
+              >
+                Reservas
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4 sm:space-y-6">
@@ -208,7 +237,7 @@ const ClubDashboard = () => {
                 sociosActivos={socios.filter((s) => s.active).length}
                 productosDisponibles={products.filter((p) => p.stock > 0).length}
                 reservasPendientes={Array.isArray(orders) ? orders.filter((o: Order) => o.status === "PENDING").length : 0}
-                ingresosMes={2450}
+                ingresosMes={calcularIngresosMes()}
               />
               <RecentActivity orders={Array.isArray(orders) ? orders : []} />
             </TabsContent>
@@ -224,6 +253,7 @@ const ClubDashboard = () => {
                 }}
                 onDelete={handleDeleteProduct}
                 onUpdateStock={handleUpdateStock}
+                onAddProduct={() => setIsAddProductOpen(true)}
               />
             </TabsContent>
 
@@ -248,14 +278,14 @@ const ClubDashboard = () => {
                   ) : (
                     <div className="space-y-4">
                       {orders.map((order: Order) => (
-                        <div key={order.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg space-y-3 sm:space-y-0 bg-slate-900/50 hover:bg-slate-900/80 transition-colors">
+                        <div key={order.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border border-slate-200  dark:border-slate-800 rounded-lg space-y-3 sm:space-y-0 bg-transparent dark:bg-slate-900/50 transition-colors">
                           <div className="flex items-start space-x-4 w-full sm:w-auto">
                             <Avatar className="h-10 w-10 border-2 border-green-500/20">
                               <AvatarFallback className="capitalize bg-green-500/10  text-green-400">{order.user.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="space-y-1.5">
                               <div className="flex items-center space-x-2">
-                                <p className="font-medium capitalize text-white">{order.user.name}</p>
+                                <p className="font-medium capitalize dark:text-white">{order.user.name}</p>
                                 <Badge variant={order.status === "COMPLETED" ? "default" : "secondary"} className={ order.status === "COMPLETED" ? `bg-green-700 uppercase` : order.status === "CANCELED" ? `bg-red-800 uppercase` : `bg-orange-800 uppercase`}>
                                   {order.status === "PENDING" ? "Pendiente" : 
                                    order.status === "COMPLETED" ? "Completada" : 
@@ -263,10 +293,10 @@ const ClubDashboard = () => {
                                 </Badge>
                               </div>
                               <div className="space-y-1">
-                                <p className="text-md text-emerald-400 font-medium">
+                                <p className="text-md dark:text-emerald-400 font-medium">
                                   {order.items.map(item => `${item.product.name} (${item.quantity}gr)`).join(', ')}
                                 </p>
-                                <div className="flex items-center space-x-2 text-md capitalize font-semibold text-slate-400">
+                                <div className="flex items-center space-x-2 text-md capitalize font-semibold dark:text-slate-400">
                                   <span className="flex items-center">
                                     <Calendar className="h-3 w-3 mr-1" />
                                     {format(parseISO(order.dateOrder), "EEEE d 'de' MMMM", { locale: es })}
@@ -276,7 +306,7 @@ const ClubDashboard = () => {
                                     {order.hourOrder}
                                   </span>
                                 </div>
-                                <div className="text-xs text-white">
+                                <div className="text-xs dark:text-white">
                                   {order.comment ? (
                                     <p className="flex items-start">
                                       <span className="mr-1">💬</span>
@@ -293,7 +323,7 @@ const ClubDashboard = () => {
                             </div>
                           </div>
                           <div className="text-right w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-slate-800 pt-3 sm:pt-0 sm:pl-4">
-                            <p className="text-lg font-bold text-emerald-400">€{order.total}</p>
+                            <p className="text-lg font-bold text-green-600">€{order.total}</p>
                           </div>
                         </div>
                       ))}

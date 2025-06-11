@@ -37,6 +37,7 @@ interface ProductListProps {
   onEdit: (product: Product) => void
   onDelete: (id: string) => void
   onUpdateStock: (id: string, stock: number) => void
+  onAddProduct: () => void
 }
 
 export const ProductList = ({ 
@@ -45,7 +46,8 @@ export const ProductList = ({
   error,
   onEdit,
   onDelete,
-  onUpdateStock
+  onUpdateStock,
+  onAddProduct
 }: ProductListProps) => {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
@@ -115,6 +117,13 @@ export const ProductList = ({
                 </SelectContent>
               </Select>
             </div>
+            <Button 
+              onClick={onAddProduct}
+              className="bg-green-600 hover:bg-green-700 text-white rounded-xl"
+            >
+              <PackagePlus className="h-4 w-4 mr-2" />
+              Agregar Producto
+            </Button>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -137,7 +146,7 @@ export const ProductList = ({
                       )}
                       <div>
                         <h3 className="font-semibold text-lg text-green-800">{product.name}</h3>
-                        <Badge className="mt-1 bg-green-100 text-green-800 border-green-200">
+                        <Badge className="mt-1 bg-green-100 text-green-800 border-green-200 capitalize">
                           {product.category}
                         </Badge>
                       </div>

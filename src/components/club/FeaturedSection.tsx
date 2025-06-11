@@ -7,6 +7,7 @@ interface FeaturedSectionProps {
   totalProductos: number
   totalReservas: number
   totalActivos: number
+  totalGramos: number
   clubImageUrl?: string
 }
 
@@ -16,6 +17,7 @@ const FeaturedSection = ({
   totalProductos,
   totalReservas,
   totalActivos,
+  totalGramos,
   clubImageUrl = "/placeholder.svg?height=400&width=800",
 }: FeaturedSectionProps) => {
   return (
@@ -80,10 +82,10 @@ const FeaturedSection = ({
               <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
                 {totalSocios.toLocaleString()}
               </div>
-              <div className="text-xs text-emerald-300 mt-1 flex items-center">
+              {/* <div className="text-xs text-emerald-300 mt-1 flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 +12% este mes
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -98,10 +100,10 @@ const FeaturedSection = ({
               <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
                 {totalProductos.toLocaleString()}
               </div>
-              <div className="text-xs text-emerald-300 mt-1 flex items-center">
+              {/* <div className="text-xs text-emerald-300 mt-1 flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 +5% este mes
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -116,10 +118,10 @@ const FeaturedSection = ({
               <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
                 {totalReservas.toLocaleString()}
               </div>
-              <div className="text-xs text-emerald-300 mt-1 flex items-center">
+              {/* <div className="text-xs text-emerald-300 mt-1 flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 +8% este mes
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -134,10 +136,10 @@ const FeaturedSection = ({
               <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
                 {totalActivos.toLocaleString()}
               </div>
-              <div className="text-xs text-emerald-300 mt-1 flex items-center">
+              {/* <div className="text-xs text-emerald-300 mt-1 flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 +3% este mes
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -147,19 +149,19 @@ const FeaturedSection = ({
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-6">
               <div className="text-center">
-                <div className="text-xs text-white/60 uppercase tracking-wide">Tasa Actividad</div>
+                {/* <div className="text-xs text-white/60 uppercase tracking-wide">Tasa Actividad</div>
                 <div className="text-lg font-bold text-white">
                   {totalSocios > 0 ? Math.round((totalActivos / totalSocios) * 100) : 0}%
-                </div>
+                </div> */}
               </div>
               <div className="text-center">
                 <div className="text-xs text-white/60 uppercase tracking-wide">Stock Total</div>
-                <div className="text-lg font-bold text-white">{totalProductos * 50}g</div>
+                <div className="text-lg font-bold text-white">{totalGramos}g</div>
               </div>
-              <div className="text-center">
+              {/* <div className="text-center">
                 <div className="text-xs text-white/60 uppercase tracking-wide">Ingresos Mes</div>
                 <div className="text-lg font-bold text-white">€2,450</div>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex items-center space-x-2 text-xs text-white/60">

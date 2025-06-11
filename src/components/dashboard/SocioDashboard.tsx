@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Minus,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -21,6 +22,7 @@ import { useClub } from "@/hooks/useClub"
 import { useProducts } from "@/hooks/useProducts"
 import { useAuthStore } from "@/store/auth"
 import ShoppingCartComponent from '@/components/cart/ShoppingCart'
+import { FeaturedProductCard } from "@/components/products/FeaturedProductCard"
 
 interface Product {
   id: string
@@ -46,6 +48,13 @@ interface CartItem extends Product {
   quantity: number
 }
 
+interface ProductCardProps {
+  product: Product
+  onAddToCart: (product: Product, quantity: number) => void
+  onToggleFavorite: (id: string) => void
+  isFavorite: boolean
+}
+
 export default function Component() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -57,13 +66,17 @@ export default function Component() {
   const { club } = useClub()
   const { logout } = useAuthStore()
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, quantity: number) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id)
       if (existing) {
-        return prev.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
+        return prev.map((item) => 
+          item.id === product.id 
+            ? { ...item, quantity: item.quantity + quantity } 
+            : item
+        )
       }
-      return [...prev, { ...product, quantity: 1 }]
+      return [...prev, { ...product, quantity }]
     })
   }
 
@@ -119,7 +132,7 @@ export default function Component() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950" >
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-sky-500/10 dark:bg-sky-500/5 rounded-full blur-3xl animate-pulse"></div>
@@ -150,18 +163,9 @@ export default function Component() {
               {profile && (
                 <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl rounded-full px-6 py-3 border border-white/20">
                   <User className="w-5 h-5 text-emerald-400" />
-                  <span className="text-sm font-medium text-white">{profile.name || "Usuario"}</span>
+                  <span className="text-sm font-medium text-white capitalize">{profile.data.name || "Usuario"}</span>
                 </div>
               )}
-
-              <Button
-                variant="outline"
-                size="icon"
-                className="bg-white/10 backdrop-blur-xl border-white/20 hover:bg-white/20 text-white"
-                onClick={logout}
-              >
-                <LogOut className="w-5 h-5" />
-              </Button>
 
               <ShoppingCartComponent
                 cart={cart}
@@ -271,99 +275,20 @@ export default function Component() {
   )
 }
 
-interface ProductCardProps {
-  product: Product
-  onAddToCart: (product: Product) => void
-  onToggleFavorite: (id: string) => void
-  isFavorite: boolean
-}
-
-function FeaturedProductCard({ product, onAddToCart, onToggleFavorite, isFavorite }: ProductCardProps) {
-  return (
-    <Card className="group relative overflow-hidden  transition-all duration-700 hover:-translate-y-4 hover:scale-105">
-      {/* Animated Border */}
-      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-green-500/20 to-emerald-500/20 group-hover:from-emerald-500/50 group-hover:via-green-500/50 group-hover:to-emerald-500/50 transition-all duration-500 blur-sm"></div>
-      {/* Favorite Button */}
-      <Button
-        size="icon"
-        variant="ghost"
-        className="absolute top-4 right-4 z-20 bg-black/30 backdrop-blur-xl hover:bg-black/50 border border-white/20"
-        onClick={() => onToggleFavorite(product.id)}
-      >
-        <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-white"}`} />
-      </Button>
-
-      <CardContent className="p-0 relative z-10">
-        {/* Image */}
-        <div className="relative h-80 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10"></div>
-          <img
-            src={product.image || "/placeholder.svg"}
-            alt={product.name}
-            className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 group-hover:rotate-2"
-          />
-        </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-4">
-          {/* Category & Stock */}
-          <div className="flex items-center justify-between">
-            <Badge
-              variant="outline"
-              className="border-emerald-400/50 text-emerald-400 bg-emerald-500/10 backdrop-blur-xl"
-            >
-              {product.category}
-            </Badge>
-            <div className="flex items-center space-x-1 text-sm text-gray-300">
-              <Clock className="w-4 h-4" />
-              <span>{product.stock} disponibles</span>
-            </div>
-          </div>
-
-          {/* Title */}
-          <h3 className="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors">
-            {product.name}
-          </h3>
-
-          {/* Description */}
-          <p className="text-gray-300 text-sm line-clamp-2">{product.description}</p>
-
-          {/* THC/CBD Info */}
-          <div className="flex items-center space-x-6 text-sm">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
-              <span className="font-medium text-emerald-400">THC:</span>
-              <span className="text-white font-bold">{product.thc}%</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
-              <span className="font-medium text-purple-400">CBD:</span>
-              <span className="text-white font-bold">{product.CBD}%</span>
-            </div>
-          </div>
-
-          {/* Price & Action */}
-          <div className="flex items-center justify-between pt-6 border-t border-white/10">
-            <div className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-              ${product.price}
-              <span className="text-sm text-gray-400 font-normal">/g</span>
-            </div>
-            <Button
-              onClick={() => onAddToCart(product)}
-              className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-2xl hover:shadow-emerald-500/50 transition-all duration-300 transform hover:scale-105"
-              disabled={product.stock === 0}
-            >
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              {product.stock === 0 ? "Agotado" : "Agregar"}
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
 function ModernProductCard({ product, onAddToCart, onToggleFavorite, isFavorite }: ProductCardProps) {
+  const [quantity, setQuantity] = useState(1)
+
+  const handleQuantityChange = (value: number) => {
+    if (value >= 1 && value <= product.stock) {
+      setQuantity(value)
+    }
+  }
+
+  const handleAddToCart = () => {
+    onAddToCart(product, quantity)
+    setQuantity(1) // Resetear la cantidad después de agregar al carrito
+  }
+
   return (
     <Card className="group relative overflow-hidden bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
       {/* Animated Background */}
@@ -430,14 +355,37 @@ function ModernProductCard({ product, onAddToCart, onToggleFavorite, isFavorite 
               ${product.price}
               <span className="text-xs text-gray-400 font-normal">/g</span>
             </div>
-            <Button
-              onClick={() => onAddToCart(product)}
-              size="sm"
-              className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-              disabled={product.stock === 0}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 bg-white/10 backdrop-blur-xl rounded-lg px-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-white hover:bg-white/20"
+                  onClick={() => handleQuantityChange(quantity - 1)}
+                  disabled={quantity <= 1}
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="text-white text-sm font-medium min-w-[1.5rem] text-center">{quantity}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-white hover:bg-white/20"
+                  onClick={() => handleQuantityChange(quantity + 1)}
+                  disabled={quantity >= product.stock}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+              <Button
+                onClick={handleAddToCart}
+                size="sm"
+                className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                disabled={product.stock === 0}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>

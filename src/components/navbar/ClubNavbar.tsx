@@ -66,7 +66,7 @@ export default function ClubNavbar() {
   const logout = useAuthStore((state) => state.logout)
   const { club, isLoading } = useClub()
 
-  // Auto-close mobile menu when clicking outside
+
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isMobileOpen && !(event.target as Element).closest("[data-sidebar]")) {

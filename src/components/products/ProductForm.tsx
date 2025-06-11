@@ -45,26 +45,26 @@ export const ProductForm = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] rounded-2xl border-green-200">
+      <DialogContent className="sm:max-w-[425px] rounded-2xl border-green-800">
         <DialogHeader>
           <DialogTitle className="text-green-800 flex items-center">
             <div className="p-2 bg-green-100 rounded-lg mr-3">
               {product ? (
-                <Edit className="h-5 w-5 text-green-600" />
+                <Edit className="h-5 w-5 text-green-800" />
               ) : (
-                <PackagePlus className="h-5 w-5 text-green-600" />
+                <PackagePlus className="h-5 w-5 text-green-800" />
               )}
             </div>
             {title}
           </DialogTitle>
-          <DialogDescription className="text-green-600">
+          <DialogDescription className="text-green-800">
             {description}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right text-green-700 font-medium">
+              <Label htmlFor="name" className="text-right text-green-800 font-medium">
                 Nombre
               </Label>
               <Input 
@@ -76,7 +76,7 @@ export const ProductForm = ({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right text-green-700 font-medium">
+              <Label htmlFor="category" className="text-right text-green-800 font-medium">
                 Categoría
               </Label>
               <Select name="category" defaultValue={product?.category} required>
@@ -91,7 +91,7 @@ export const ProductForm = ({
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="thc" className="text-right text-green-700 font-medium">
+              <Label htmlFor="thc" className="text-right text-green-800 font-medium">
                 THC %
               </Label>
               <Input 
@@ -104,7 +104,7 @@ export const ProductForm = ({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="CBD" className="text-right text-green-700 font-medium">
+              <Label htmlFor="CBD" className="text-right text-green-800 font-medium">
                 CBD %
               </Label>
               <Input 
@@ -117,7 +117,7 @@ export const ProductForm = ({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="price" className="text-right text-green-700 font-medium">
+              <Label htmlFor="price" className="text-right text-green-800 font-medium">
                 Precio €
               </Label>
               <Input 
@@ -131,7 +131,7 @@ export const ProductForm = ({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="stock" className="text-right text-green-700 font-medium">
+              <Label htmlFor="stock" className="text-right text-green-800 font-medium">
                 Stock
               </Label>
               <Input 
@@ -144,7 +144,7 @@ export const ProductForm = ({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right text-green-700 font-medium">
+              <Label htmlFor="description" className="text-right text-green-800 font-medium">
                 Descripción
               </Label>
               <Textarea 
@@ -156,7 +156,7 @@ export const ProductForm = ({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="image" className="text-right text-green-700 font-medium">
+              <Label htmlFor="image" className="text-right text-green-800 font-medium">
                 Imagen
               </Label>
               <div className="col-span-3">
@@ -175,7 +175,7 @@ export const ProductForm = ({
                   }}
                   className="border-green-200 focus:border-green-500 rounded-lg" 
                 />
-                <p className="text-sm text-green-600 mt-1">
+                <p className="text-sm text-green-800 mt-1">
                   Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
                 </p>
               </div>
@@ -186,7 +186,7 @@ export const ProductForm = ({
               type="button"
               variant="outline" 
               onClick={onClose} 
-              className="border-green-200 text-green-700 hover:bg-green-50 rounded-lg"
+              className="border-green-200 text-green-800 hover:bg-green-50 rounded-lg"
             >
               Cancelar
             </Button>

@@ -23,10 +23,10 @@ const StatsGrid = ({
         </CardHeader>
         <CardContent>
           <div className="text-xl sm:text-2xl font-bold text-slate-100">{sociosActivos}</div>
-          <p className="text-xs text-slate-400">
+          {/* <p className="text-xs text-slate-400">
             <TrendingUp className="h-3 w-3 inline mr-1" />
             +2 desde el mes pasado
-          </p>
+          </p> */}
         </CardContent>
       </Card>
 
@@ -65,10 +65,10 @@ const StatsGrid = ({
         </CardHeader>
         <CardContent>
           <div className="text-xl sm:text-2xl font-bold text-slate-100">€{ingresosMes}</div>
-          <p className="text-xs text-slate-400">
+          {/* <p className="text-xs text-slate-400">
             <TrendingUp className="h-3 w-3 inline mr-1" />
             +15% desde el mes pasado
-          </p>
+          </p> */}
         </CardContent>
       </Card>
     </div>
