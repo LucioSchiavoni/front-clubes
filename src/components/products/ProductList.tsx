@@ -109,7 +109,7 @@ export const ProductList = ({
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-green-200">
+                <SelectContent className="bg-white text-green-800 border-green-200">
                   <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="sativa">Sativa</SelectItem>
                   <SelectItem value="indica">Indica</SelectItem>

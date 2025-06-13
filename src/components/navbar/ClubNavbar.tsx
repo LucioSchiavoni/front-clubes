@@ -180,21 +180,7 @@ export default function ClubNavbar() {
           </div>
         </div>
 
-        {/* Search - Only show when expanded */}
-        <div
-          className={`
-          border-b border-border/50 bg-background/30 transition-all duration-200 ease-out overflow-hidden
-          ${isExpanded ? "max-h-20 p-4" : "max-h-0 p-0"}
-        `}
-        >
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Buscar..."
-              className="pl-10 bg-background/50 border-border/50 focus:border-primary/50"
-            />
-          </div>
-        </div>
+
 
         {/* Navigation */}
         <div className="flex-1 overflow-y-auto">
@@ -208,7 +194,7 @@ export default function ClubNavbar() {
                   className={`
                     w-full h-11 transition-all duration-200 ease-out
                     ${isExpanded || isMobileOpen ? "justify-start px-3" : "justify-center px-0"}
-                    hover:bg-accent/80 hover:text-accent-foreground hover:scale-[1.02]
+                hover:text-accent-foreground hover:scale-[1.02]
                     group relative overflow-hidden rounded-xl
                     text-sm bg-transparent
                     dark:hover:bg-slate-800/50 hover:bg-slate-100/50

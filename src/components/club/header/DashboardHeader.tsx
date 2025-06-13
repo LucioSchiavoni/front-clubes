@@ -48,9 +48,7 @@ const DashboardHeader = ({ clubName, searchTerm, onSearchChange, onAddMember }: 
             <div className="sm:hidden">
               <ThemeSwitch />
             </div>
-            <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center">
-              <span className="text-slate-100 font-semibold">A</span>
-            </div>
+          
           </div>
         </div>
       </div>

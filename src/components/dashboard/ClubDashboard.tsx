@@ -159,16 +159,8 @@ const ClubDashboard = () => {
     return <AddClubForm />
   }
 
-  if( sociosError || productsError || ordersError) {
-    return (
-      <div className="h-full flex items-center justify-center bg-white dark:bg-slate-800">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-red-600 mx-auto mb-4" />
-          <p className="text-red-700 font-medium">Error al cargar los datos del club</p>
-        </div>
-      </div>
-    )
-  }
+
+  
 
   if (isClubLoading) {
     return (

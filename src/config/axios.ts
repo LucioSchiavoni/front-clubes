@@ -6,6 +6,7 @@ const instance = axios.create({
   withCredentials: true,
 });
 
+
 // Interceptor para agregar el token a las peticiones
 instance.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;

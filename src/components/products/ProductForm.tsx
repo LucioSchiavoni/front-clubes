@@ -186,7 +186,7 @@ export const ProductForm = ({
               type="button"
               variant="outline" 
               onClick={onClose} 
-              className="border-green-200 text-green-800 hover:bg-green-50 rounded-lg"
+              className="border-green-200 hover:text-green-800 text-green-800 hover:bg-green-50 rounded-lg"
             >
               Cancelar
             </Button>

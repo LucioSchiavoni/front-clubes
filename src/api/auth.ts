@@ -1,7 +1,6 @@
 import { createUser } from "@/interface/create-user";
 import { loginUser } from "@/interface/login-user";
 import instance from "../config/axios";
-import axios from "axios";
 
 
 export const loginRequest = async (data: loginUser) => {
@@ -12,8 +11,20 @@ export const loginRequest = async (data: loginUser) => {
 export const authRequest = () =>
   instance.get("/auth");
 
-export const registerRequest = (user: createUser) =>
-    instance.post("/register", user);
+export const registerRequest = async (user: createUser) => {
+  try {
+    const response = await instance.post("/register", user);
+    return response;
+  } catch (error: any) {
+    if (error.response?.status === 409) {
+      return {
+        data: error.response.data,
+        status: 409
+      };
+    }
+    throw error;
+  }
+};
 
 export const getSociosRequest = async (clubId: string) => {
   try {

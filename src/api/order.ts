@@ -24,7 +24,6 @@ export const getOrderByUserId = async(userId: string) => {
     const res = await instance.get(`/order/club/${userId}`)
     return res.data
   } catch (error) {
-    console.error('Error fetching orders:', error)
     throw new Error('Error al obtener las reservas del usuario')
   }
 }

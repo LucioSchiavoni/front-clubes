@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, Mail, Lock, Phone, MapPin, User } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -45,7 +45,21 @@ const AddSocioForm = ({ isOpen, onClose, onSubmit }: AddSocioFormProps) => {
 
   const registerMutation = useMutation({
     mutationFn: (userData: any) => registerRequest(userData),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (response.status === 409) {
+        setFormData(prev => ({
+          ...prev,
+          email: ''
+        }))
+        setErrors(prev => ({
+          ...prev,
+          email: 'Este email ya está registrado',
+          general: response.data.message
+        }))
+        toast.error(response.data.message)
+        return
+      }
+
       queryClient.invalidateQueries({ queryKey: ['socios'] })
       const data = new FormData()
       Object.entries(formData).forEach(([key, value]) => {
@@ -55,7 +69,6 @@ const AddSocioForm = ({ isOpen, onClose, onSubmit }: AddSocioFormProps) => {
       })
       onSubmit(data)
       onClose()
-      // Limpiar el formulario
       setFormData({
         name: '',
         email: '',
@@ -70,19 +83,11 @@ const AddSocioForm = ({ isOpen, onClose, onSubmit }: AddSocioFormProps) => {
     },
     onError: (error: any) => {
       console.error('Error al registrar socio:', error)
-      if (error.response?.data?.message) {
-        setErrors(prev => ({
-          ...prev,
-          general: error.response.data.message
-        }))
-        toast.error(error.response.data.message)
-      } else {
-        setErrors(prev => ({
-          ...prev,
-          general: 'Error al registrar el socio'
-        }))
-        toast.error('Error al registrar el socio')
-      }
+      setErrors(prev => ({
+        ...prev,
+        general: 'Error al registrar el socio'
+      }))
+      toast.error('Error al registrar el socio')
     }
   })
 
@@ -90,7 +95,6 @@ const AddSocioForm = ({ isOpen, onClose, onSubmit }: AddSocioFormProps) => {
     e.preventDefault()
     setErrors({ password: '', repeatPassword: '', email: '', general: '' })
     
-    // Validar contraseñas
     if (formData.password !== formData.repeatPassword) {
       setErrors(prev => ({
         ...prev,
@@ -107,7 +111,6 @@ const AddSocioForm = ({ isOpen, onClose, onSubmit }: AddSocioFormProps) => {
       return
     }
 
-    // Preparar datos para el registro
     const userData = {
       name: formData.name,
       email: formData.email,
@@ -129,7 +132,6 @@ const AddSocioForm = ({ isOpen, onClose, onSubmit }: AddSocioFormProps) => {
       [name]: value
     }))
 
-    // Limpiar errores cuando el usuario modifica los campos
     if (name === 'password' || name === 'repeatPassword' || name === 'email') {
       setErrors(prev => ({
         ...prev,
@@ -140,131 +142,170 @@ const AddSocioForm = ({ isOpen, onClose, onSubmit }: AddSocioFormProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] rounded-2xl border-green-200">
-        <DialogHeader>
-          <DialogTitle className="text-green-800 flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg mr-3">
-              <UserPlus className="h-5 w-5 text-green-600" />
+      <DialogContent className="sm:max-w-[500px] rounded-2xl border-emerald-900/20 bg-gradient-to-b from-emerald-950/50 to-emerald-900/30 backdrop-blur-xl">
+        <DialogHeader className="space-y-4">
+          <DialogTitle className="text-emerald-100 flex items-center text-xl">
+            <div className="p-2 bg-emerald-900/50 rounded-lg mr-3">
+              <UserPlus className="h-5 w-5 text-emerald-400" />
             </div>
             Agregar Nuevo Socio
           </DialogTitle>
-          <DialogDescription className="text-green-600">
+          <DialogDescription className="text-emerald-300/80">
             Completa la información del nuevo socio del club cannábico.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-          {errors.general && (
-            <div className="col-span-4 bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">
-              {errors.general}
+
+        {errors.email && (
+          <div className="bg-red-900/20 border border-red-800/30 rounded-lg p-3 text-red-300 text-sm mb-4">
+            <div className="flex items-center">
+              <span className="mr-2">⚠️</span>
+              {errors.email}
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {errors.general && !errors.email && (
+            <div className="bg-red-900/20 border border-red-800/30 rounded-lg p-3 text-red-300 text-sm">
+              <div className="flex items-center">
+                <span className="mr-2">⚠️</span>
+                {errors.general}
+              </div>
             </div>
           )}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right text-green-700 font-medium">
-              Nombre
-            </Label>
-            <Input 
-              id="name" 
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" 
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email" className="text-right text-green-700 font-medium">
-              Email
-            </Label>
-            <div className="col-span-3">
-              <Input 
-                id="email" 
-                name="email"
-                type="email" 
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className={`border-green-200 focus:border-green-500 rounded-lg ${errors.email ? 'border-red-500' : ''}`}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-              )}
+
+          <div className="space-y-4">
+            <div className="relative">
+              <Label htmlFor="name" className="text-emerald-300/90 mb-2 block">
+                Nombre
+              </Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                <Input 
+                  id="name" 
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="pl-10 bg-emerald-950/50 border-emerald-800/50 text-emerald-100 placeholder:text-emerald-500/50 focus:border-emerald-500 rounded-lg" 
+                  placeholder="Ingresa el nombre completo"
+                />
+              </div>
+            </div>
+
+            <div className="relative">
+              <Label htmlFor="email" className="text-emerald-300/90 mb-2 block">
+                Email
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                <Input 
+                  id="email" 
+                  name="email"
+                  type="email" 
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className={`pl-10 bg-emerald-950/50 border-emerald-800/50 text-emerald-100 placeholder:text-emerald-500/50 focus:border-emerald-500 rounded-lg ${errors.email ? 'border-red-500/50 bg-red-900/20' : ''}`}
+                  placeholder={errors.email ? 'Email ya registrado' : 'ejemplo@email.com'}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="relative">
+                <Label htmlFor="password" className="text-emerald-300/90 mb-2 block">
+                  Contraseña
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                  <Input 
+                    id="password" 
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className={`pl-10 bg-emerald-950/50 border-emerald-800/50 text-emerald-100 placeholder:text-emerald-500/50 focus:border-emerald-500 rounded-lg ${errors.password ? 'border-red-500/50 bg-red-900/20' : ''}`}
+                    placeholder="••••••"
+                  />
+                </div>
+                {errors.password && (
+                  <p className="text-red-400 text-xs mt-1">{errors.password}</p>
+                )}
+              </div>
+
+              <div className="relative">
+                <Label htmlFor="repeatPassword" className="text-emerald-300/90 mb-2 block">
+                  Repetir Contraseña
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                  <Input 
+                    id="repeatPassword" 
+                    name="repeatPassword"
+                    type="password"
+                    value={formData.repeatPassword}
+                    onChange={handleChange}
+                    required
+                    className={`pl-10 bg-emerald-950/50 border-emerald-800/50 text-emerald-100 placeholder:text-emerald-500/50 focus:border-emerald-500 rounded-lg ${errors.repeatPassword ? 'border-red-500/50 bg-red-900/20' : ''}`}
+                    placeholder="••••••"
+                  />
+                </div>
+                {errors.repeatPassword && (
+                  <p className="text-red-400 text-xs mt-1">{errors.repeatPassword}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="relative">
+              <Label htmlFor="phone" className="text-emerald-300/90 mb-2 block">
+                Teléfono
+              </Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                <Input 
+                  id="phone" 
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="pl-10 bg-emerald-950/50 border-emerald-800/50 text-emerald-100 placeholder:text-emerald-500/50 focus:border-emerald-500 rounded-lg"
+                  placeholder="+34 123 456 789"
+                />
+              </div>
+            </div>
+
+            <div className="relative">
+              <Label htmlFor="address" className="text-emerald-300/90 mb-2 block">
+                Dirección
+              </Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                <Input 
+                  id="address" 
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  className="pl-10 bg-emerald-950/50 border-emerald-800/50 text-emerald-100 placeholder:text-emerald-500/50 focus:border-emerald-500 rounded-lg"
+                  placeholder="Calle, número, ciudad"
+                />
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="password" className="text-right text-green-700 font-medium">
-              Contraseña
-            </Label>
-            <div className="col-span-3">
-              <Input 
-                id="password" 
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className={`border-green-200 focus:border-green-500 rounded-lg ${errors.password ? 'border-red-500' : ''}`}
-              />
-              {errors.password && (
-                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-              )}
-            </div>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="repeatPassword" className="text-right text-green-700 font-medium">
-              Repetir Contraseña
-            </Label>
-            <div className="col-span-3">
-              <Input 
-                id="repeatPassword" 
-                name="repeatPassword"
-                type="password"
-                value={formData.repeatPassword}
-                onChange={handleChange}
-                required
-                className={`border-green-200 focus:border-green-500 rounded-lg ${errors.repeatPassword ? 'border-red-500' : ''}`}
-              />
-              {errors.repeatPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.repeatPassword}</p>
-              )}
-            </div>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="phone" className="text-right text-green-700 font-medium">
-              Teléfono
-            </Label>
-            <Input 
-              id="phone" 
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" 
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="address" className="text-right text-green-700 font-medium">
-              Dirección
-            </Label>
-            <Input 
-              id="address" 
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              className="col-span-3 border-green-200 focus:border-green-500 rounded-lg" 
-            />
-          </div>
-          <div className="flex justify-end space-x-2 mt-4">
+
+          <div className="flex justify-end space-x-3 pt-4">
             <Button 
               type="button"
               variant="outline" 
               onClick={onClose} 
-              className="border-green-200 text-green-700 hover:bg-green-50 rounded-lg"
+              className="border-emerald-800/50 text-green-800 hover:text-black hover:bg-gray-400 rounded-lg"
               disabled={registerMutation.isPending}
             >
               Cancelar
             </Button>
             <Button 
               type="submit"
-              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg hover:from-emerald-700 hover:to-emerald-800"
               disabled={registerMutation.isPending}
             >
               {registerMutation.isPending ? 'Registrando...' : 'Agregar Socio'}

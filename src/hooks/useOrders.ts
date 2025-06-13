@@ -44,15 +44,29 @@ export const useOrders = (clubId: string) => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['orders', clubId],
     queryFn: async () => {
-      const response = await getOrderByUserId(clubId);
-      return response.data || [];
+      try {
+        const response = await getOrderByUserId(clubId);
+        if (response.data?.message === "No se encontraron órdenes") {
+          return {
+            orders: [],
+            message: response.data.message
+          };
+        }
+        return {
+          orders: response.data || [],
+          message: null
+        };
+      } catch (error) {
+        throw error;
+      }
     },
     enabled: !!clubId,
     refetchInterval: 5000, 
   });
 
   return {
-    orders: data || [],
+    orders: data?.orders || [],
+    message: data?.message || null,
     isLoading,
     error,
   };
