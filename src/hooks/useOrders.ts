@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getOrderByUserId } from "@/api/order";
+import { getOrderBySocioId } from "@/api/order";
 import { useAuthStore } from "@/store/auth";
 
 export interface Order {
@@ -41,11 +41,14 @@ export interface Order {
 }
 
 export const useOrders = (clubId: string) => {
+
+  const { profile } = useAuthStore()
+  const socioId = profile?.data?.id;
   const { data, isLoading, error } = useQuery({
-    queryKey: ['orders', clubId],
+    queryKey: ['orders', socioId],
     queryFn: async () => {
       try {
-        const response = await getOrderByUserId(clubId);
+        const response = await getOrderBySocioId(socioId);
         if (response.data?.message === "No se encontraron órdenes") {
           return {
             orders: [],
@@ -60,10 +63,30 @@ export const useOrders = (clubId: string) => {
         throw error;
       }
     },
-    enabled: !!clubId,
+    enabled: !!socioId,
     refetchInterval: 5000, 
   });
 
+  return {
+    orders: data || [],
+    isLoading,
+    error,
+  };
+}
+
+
+export const useOrdersBySocio = (socioId: string) => {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['ordersBySocio', ],
+    queryFn: async () => {
+      const response = await getOrderBySocioId(socioId);
+      return response.data || [];
+    },
+    enabled: !!socioId,
+    refetchInterval: 5000, 
+  });
+
+  
   return {
     orders: data?.orders || [],
     message: data?.message || null,

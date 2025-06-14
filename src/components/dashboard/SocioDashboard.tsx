@@ -21,8 +21,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useClub } from "@/hooks/useClub"
 import { useProducts } from "@/hooks/useProducts"
 import { useAuthStore } from "@/store/auth"
+import { useOrdersBySocio } from "@/hooks/useOrders"
 import ShoppingCartComponent from '@/components/cart/ShoppingCart'
 import { FeaturedProductCard } from "@/components/products/FeaturedProductCard"
+import OrderSocios from "../orders/OrderSocios"
+import { Order } from "@/types/order"
+import { ThemeSwitch } from "../theme-switch"
 
 interface Product {
   id: string
@@ -64,7 +68,7 @@ export default function Component() {
   const { profile } = useAuthStore()
   const { products, isLoading } = useProducts(profile?.data?.clubId)
   const { club } = useClub()
-  const { logout } = useAuthStore()
+
 
   const addToCart = (product: Product, quantity: number) => {
     setCart((prev) => {
@@ -132,40 +136,34 @@ export default function Component() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950" >
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-sky-500/10 dark:bg-sky-500/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-3/4 left-1/2 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-3/4 left-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-2xl bg-black/20 dark:bg-black/30 border-b border-white/10 dark:border-white/5">
+      <header className="sticky top-0 z-50 bg-background border-b border-border">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 dark:from-emerald-500 dark:via-green-600 dark:to-emerald-700 rounded-2xl flex items-center justify-center shadow-2xl">
+                <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-2xl">
                   <span className="text-white font-bold text-xl">🌿</span>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-600 dark:from-emerald-500 dark:to-green-700 rounded-2xl blur opacity-50 animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-600 rounded-2xl blur opacity-50 animate-pulse"></div>
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 dark:from-emerald-500 dark:via-green-500 dark:to-emerald-600 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
                   {club?.name || "Club"}
                 </h1>
-                <p className="text-sm text-gray-400 dark:text-gray-500">Cannabis Marketplace</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
-              {profile && (
-                <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl rounded-full px-6 py-3 border border-white/20">
-                  <User className="w-5 h-5 text-emerald-400" />
-                  <span className="text-sm font-medium text-white capitalize">{profile.data.name || "Usuario"}</span>
-                </div>
-              )}
+              <ThemeSwitch/>
 
               <ShoppingCartComponent
                 cart={cart}
@@ -179,216 +177,97 @@ export default function Component() {
         </div>
       </header>
 
-      {/* Filters */}
+      {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-12">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              placeholder="Buscar productos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 bg-white/10 backdrop-blur-xl border-white/20 text-white placeholder:text-gray-400 focus:border-emerald-400"
-            />
-          </div>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left Column - Products */}
+          <div className="flex-1">
+            {/* Filters */}
+            <div className="flex flex-col gap-4 mb-12">
+              <div className="relative w-full">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                <Input
+                  placeholder="Buscar productos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-12 h-12 text-base bg-background border-border text-foreground placeholder:text-muted-foreground shadow-sm"
+                />
+              </div>
 
-          <div className="flex items-center space-x-4">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-40 bg-white/10 backdrop-blur-xl border-white/20 text-white">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900/95 backdrop-blur-xl border-white/10">
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="sativa">Sativa</SelectItem>
-                <SelectItem value="indica">Indica</SelectItem>
-                <SelectItem value="hibrida">Híbrida</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+              <div className="flex items-center justify-end">
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-full sm:w-40 h-12 bg-background border-border text-foreground shadow-sm">
+                    <Filter className="w-4 h-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border-border">
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="sativa">Sativa</SelectItem>
+                    <SelectItem value="indica">Indica</SelectItem>
+                    <SelectItem value="hibrida">Híbrida</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-        {/* Featured Products Carousel */}
-        <div className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
-              ✨ Productos Destacados
-            </h2>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => scrollCarousel("left")}
-                className="bg-white/10 backdrop-blur-xl border-white/20 text-white hover:bg-white/20"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => scrollCarousel("right")}
-                className="bg-white/10 backdrop-blur-xl border-white/20 text-white hover:bg-white/20"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+            {/* Featured Products Carousel */}
+            <div className="mb-16">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
+                  ✨ Productos Destacados
+                </h2>
+              </div>
+
+              <div className="w-full">
+                {featuredProducts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 bg-card/50 rounded-xl border border-border/50">
+                    <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center">
+                      <Search className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-semibold text-foreground">No encontramos productos</h3>
+                      <p className="text-muted-foreground max-w-sm">
+                        No hay productos que coincidan con tu búsqueda "{searchTerm}". 
+                        Intenta con otros términos o revisa los filtros aplicados.
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setSearchTerm("")
+                        setSelectedCategory("all")
+                      }}
+                      className="mt-2"
+                    >
+                      Limpiar búsqueda
+                    </Button>
+                  </div>
+                ) : (
+                  <FeaturedProductCard
+                    products={featuredProducts}
+                    onAddToCart={addToCart}
+                    onToggleFavorite={toggleFavorite}
+                    isFavorite={favorites.includes(featuredProducts[0]?.id)}
+                  />
+                )}
+              </div>
             </div>
           </div>
 
-          <div
-            ref={carouselRef}
-            className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {featuredProducts.map((product) => (
-              <div key={product.id} className="flex-none w-80">
-                <FeaturedProductCard
-                  product={product}
-                  onAddToCart={addToCart}
-                  onToggleFavorite={toggleFavorite}
-                  isFavorite={favorites.includes(product.id)}
-                />
+          {/* Right Column - Orders */}
+          <div className="w-full lg:w-96">
+            <div className="lg:sticky lg:top-24">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent mb-6">
+                📦 Mis Pedidos
+              </h2>
+              <div className="lg:h-[calc(100vh-12rem)] lg:overflow-y-auto lg:pr-4">
+                <OrderSocios />
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-
-        {/* All Products Grid */}
-        <div>
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-8">
-            🌿 Todos los Productos
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {allProducts.map((product) => (
-              <ModernProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={addToCart}
-                onToggleFavorite={toggleFavorite}
-                isFavorite={favorites.includes(product.id)}
-              />
-            ))}
-          </div>
-           
         </div>
       </div>
     </div>
   )
 }
 
-function ModernProductCard({ product, onAddToCart, onToggleFavorite, isFavorite }: ProductCardProps) {
-  const [quantity, setQuantity] = useState(1)
-
-  const handleQuantityChange = (value: number) => {
-    if (value >= 1 && value <= product.stock) {
-      setQuantity(value)
-    }
-  }
-
-  const handleAddToCart = () => {
-    onAddToCart(product, quantity)
-    setQuantity(1) // Resetear la cantidad después de agregar al carrito
-  }
-
-  return (
-    <Card className="group relative overflow-hidden bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-purple-500/5 group-hover:from-emerald-500/10 group-hover:to-purple-500/10 transition-all duration-500"></div>
-
-      {/* Favorite Button */}
-      <Button
-        size="icon"
-        variant="ghost"
-        className="absolute top-3 right-3 z-10 bg-black/20 backdrop-blur-xl hover:bg-black/40"
-        onClick={() => onToggleFavorite(product.id)}
-      >
-        <Heart className={`w-4 h-4 ${isFavorite ? "fill-red-500 text-red-500" : "text-white"}`} />
-      </Button>
-
-      <CardContent className="p-0 relative z-10">
-        {/* Image */}
-        <div className="relative h-48 overflow-hidden">
-          <img
-            src={product.image || "/placeholder.svg"}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-
-          {/* Stock indicator */}
-          <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-xl rounded-full px-2 py-1">
-            <span className="text-xs text-white">{product.stock} disponibles</span>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 space-y-3">
-          {/* Category */}
-          <div className="flex items-center justify-between">
-            <Badge variant="outline" className="border-emerald-400/50 text-emerald-400 bg-emerald-500/10">
-              {product.category}
-            </Badge>
-          </div>
-
-          {/* Title */}
-          <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
-            {product.name}
-          </h3>
-
-          {/* Description */}
-          <p className="text-gray-300 text-xs line-clamp-2">{product.description}</p>
-
-          {/* THC/CBD */}
-          <div className="flex items-center space-x-4 text-sm">
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              <span className="text-emerald-400 font-medium">THC: {product.thc}%</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-              <span className="text-purple-400 font-medium">CBD: {product.CBD}%</span>
-            </div>
-          </div>
-
-          {/* Price & Action */}
-          <div className="flex items-center justify-between pt-3 border-t border-white/10">
-            <div className="text-xl font-bold text-emerald-400">
-              ${product.price}
-              <span className="text-xs text-gray-400 font-normal">/g</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1 bg-white/10 backdrop-blur-xl rounded-lg px-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-white hover:bg-white/20"
-                  onClick={() => handleQuantityChange(quantity - 1)}
-                  disabled={quantity <= 1}
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
-                <span className="text-white text-sm font-medium min-w-[1.5rem] text-center">{quantity}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-white hover:bg-white/20"
-                  onClick={() => handleQuantityChange(quantity + 1)}
-                  disabled={quantity >= product.stock}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-              <Button
-                onClick={handleAddToCart}
-                size="sm"
-                className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                disabled={product.stock === 0}
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}

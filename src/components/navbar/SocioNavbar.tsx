@@ -107,7 +107,7 @@ export default function ClubNavbar() {
       <Button
         variant="outline"
         size="icon"
-        className="fixed top-4 left-4 z-[60] lg:hidden bg-background/80 backdrop-blur-sm border-border/50"
+        className="fixed top-20 left-4 z-[60] lg:hidden bg-background/95 backdrop-blur-md border-border/50 shadow-lg"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         data-sidebar="mobile-trigger"
       >
@@ -125,7 +125,7 @@ export default function ClubNavbar() {
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-all duration-200 ease-out"
+          className="fixed top-0 inset-x-0 bottom-0 bg-black/70 backdrop-blur-md z-40 lg:hidden transition-all duration-300 ease-out"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
@@ -133,22 +133,22 @@ export default function ClubNavbar() {
       {/* Sidebar */}
       <div
         className={`
-          fixed lg:relative z-50 h-full bg-card/95 backdrop-blur-md border-r border-border/50 
-          transition-all duration-200 ease-out shadow-xl lg:shadow-none
+          fixed lg:relative z-50 h-[calc(100vh-5rem)] top-20 lg:top-0 bg-card/95 backdrop-blur-md border-r border-border/50 
+          transition-all duration-300 ease-out shadow-2xl lg:shadow-none
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           ${isExpanded ? "w-80" : "w-16 lg:w-20"}
-          ${isMobileOpen ? "w-[280px]" : ""}
+          ${isMobileOpen ? "w-[85vw] max-w-[320px]" : ""}
         `}
         onMouseEnter={() => !isMobileOpen && setIsExpanded(true)}
         onMouseLeave={() => !isMobileOpen && setIsExpanded(false)}
         data-sidebar="main"
       >
         {/* Header */}
-        <div className="flex items-center justify-center h-14 border-b border-border/50 bg-background/50">
+        <div className="flex items-center justify-center h-16 border-b border-border/50 bg-background/50">
           <div className={`transition-all duration-200 ease-out ${isExpanded ? "scale-100" : "scale-75"}`}>
             {isExpanded ? (
               <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                   {club.image ? (
                     <img
                       src={club.image || "/placeholder.svg"}
@@ -160,12 +160,12 @@ export default function ClubNavbar() {
                   )}
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-base text-foreground">{club.name}</span>
+                  <span className="font-bold text-lg text-foreground">{club.name}</span>
                   <span className="text-xs text-muted-foreground">Cannabis Club</span>
                 </div>
               </div>
             ) : (
-              <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                 {club.image ? (
                   <img
                     src={club.image || "/placeholder.svg"}
@@ -183,7 +183,7 @@ export default function ClubNavbar() {
 
 
         {/* Navigation */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto py-2">
           <div className="p-2 space-y-1">
             {/* Main Navigation */}
             <div className="space-y-1">
@@ -196,7 +196,7 @@ export default function ClubNavbar() {
                     ${isExpanded || isMobileOpen ? "justify-start px-3" : "justify-center px-0"}
                     hover:bg-accent/80 hover:text-accent-foreground hover:scale-[1.02]
                     group relative overflow-hidden rounded-xl
-                    text-sm bg-transparent
+                    text-base bg-transparent
                     dark:hover:bg-slate-800/50 
                   `}
                   onClick={() => {
@@ -204,7 +204,7 @@ export default function ClubNavbar() {
                     setIsMobileOpen(false)
                   }}
                 >
-                  <item.icon className={`h-4 w-4 min-w-[16px] transition-all duration-200 ease-out ${isExpanded || isMobileOpen ? "mr-2" : ""}`} />
+                  <item.icon className={`h-5 w-5 min-w-[20px] transition-all duration-200 ease-out ${isExpanded || isMobileOpen ? "mr-3" : ""}`} />
                   <span
                     className={`
                     flex-1 text-left transition-all duration-200 ease-out whitespace-nowrap
@@ -216,7 +216,7 @@ export default function ClubNavbar() {
                   {item.badge && (isExpanded || isMobileOpen) && (
                     <Badge
                       variant="secondary"
-                      className="ml-auto text-xs transition-all duration-200 ease-out bg-primary/10 text-primary border-primary/20"
+                      className="ml-auto text-xs transition-all duration-200 ease-out bg-primary/10 text-primary border-primary/20 px-2 py-0.5"
                     >
                       {item.badge}
                     </Badge>
@@ -229,7 +229,7 @@ export default function ClubNavbar() {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-border/50 bg-background/30 p-2">
+        <div className="border-t border-border/50 bg-background/30 p-3">
           <div className="space-y-1">
             <Button
               variant="ghost"
@@ -246,7 +246,7 @@ export default function ClubNavbar() {
               `}
             >
         
-              <Settings className={`h-4 w-4 transition-all duration-200 ease-out ${isExpanded || isMobileOpen ? "mr-2" : ""}`} />
+              <Settings className={`h-5 w-5 transition-all duration-200 ease-out ${isExpanded || isMobileOpen ? "mr-3" : ""}`} />
               <span
                 className={`
                 transition-all duration-200 ease-out
@@ -270,7 +270,7 @@ export default function ClubNavbar() {
                 setIsMobileOpen(false)
               }}
             >
-              <LogOut className={`h-4 w-4 transition-all duration-200 ease-out ${isExpanded || isMobileOpen ? "mr-2" : ""}`} />
+              <LogOut className={`h-5 w-5 transition-all duration-200 ease-out ${isExpanded || isMobileOpen ? "mr-3" : ""}`} />
               <span
                 className={`
                 transition-all duration-200 ease-out

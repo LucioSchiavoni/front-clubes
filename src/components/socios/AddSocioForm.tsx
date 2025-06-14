@@ -83,11 +83,19 @@ const AddSocioForm = ({ isOpen, onClose, onSubmit }: AddSocioFormProps) => {
     },
     onError: (error: any) => {
       console.error('Error al registrar socio:', error)
-      setErrors(prev => ({
-        ...prev,
-        general: 'Error al registrar el socio'
-      }))
-      toast.error('Error al registrar el socio')
+      if (error.response?.data?.message) {
+        setErrors(prev => ({
+          ...prev,
+          general: error.response.data.message
+        }))
+        toast.error(error.response.data.message)
+      } else {
+        setErrors(prev => ({
+          ...prev,
+          general: 'Error al registrar el socio'
+        }))
+        toast.error('Error al registrar el socio')
+      }
     }
   })
 

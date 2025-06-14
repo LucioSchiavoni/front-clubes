@@ -21,7 +21,7 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import type { CartItem } from '@/types/cart'
 import { useState, useEffect } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createOrder, type ReservationData } from '@/api/order'
 import { useAuthStore } from '@/store/auth'
 
@@ -71,6 +71,7 @@ const ShoppingCartComponent = ({
     setTime(selectedTime)
     setIsTimeOpen(false)
   }
+  const queryClient = useQueryClient()
 
   const { mutate: submitReservation, isPending } = useMutation({
     mutationFn: createOrder,
@@ -85,6 +86,7 @@ const ShoppingCartComponent = ({
       setTime(undefined)
       setComment('')
       cart.forEach(item => onRemoveItem(item.id))
+      queryClient.invalidateQueries({queryKey: ['orders']})
     },
     onError: (error) => {
       setAlert({
@@ -151,7 +153,7 @@ const ShoppingCartComponent = ({
           <Button
             variant="outline"
             size="icon"
-            className="relative bg-white/10 backdrop-blur-xl border-white/20 hover:bg-white/20 text-white"
+            className="relative bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
           >
             <ShoppingCartIcon className="w-5 h-5" />
             {cartItemsCount > 0 && (
@@ -161,48 +163,48 @@ const ShoppingCartComponent = ({
             )}
           </Button>
         </SheetTrigger>
-        <SheetContent className="w-[600px] bg-slate-900/95 backdrop-blur-xl border-white/10">
+        <SheetContent className="w-full sm:w-[600px] bg-background border-border p-4 sm:p-6 flex flex-col h-full">
           <SheetHeader>
-            <SheetTitle className="flex items-center space-x-2 text-white">
+            <SheetTitle className="flex items-center space-x-2 text-foreground">
               <ShoppingCartIcon className="w-5 h-5" />
               <span>Carrito de Reservas</span>
             </SheetTitle>
           </SheetHeader>
-          <div className="mt-6 space-y-4">
+          <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4 flex-1 overflow-y-auto pb-4">
             {cart.length === 0 ? (
-              <p className="text-center text-gray-400 py-8">Tu carrito está vacío</p>
+              <p className="text-center text-muted-foreground py-8">Tu carrito está vacío</p>
             ) : (
               <>
                 {cart.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center space-x-6 p-4 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10"
+                    className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 p-3 sm:p-4 bg-card text-card-foreground rounded-xl border border-border"
                   >
                     <img
                       src={item.image || "/placeholder.svg"}
                       alt={item.name}
-                      className="w-[80px] h-[80px] rounded-lg object-cover"
+                      className="w-full sm:w-[80px] h-40 sm:h-[80px] rounded-lg object-cover"
                     />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-base text-white">{item.name}</h4>
-                      <p className="text-emerald-400 font-bold text-lg">${item.price}</p>
+                    <div className="flex-1 min-w-0 w-full">
+                      <h4 className="font-medium text-base text-foreground">{item.name}</h4>
+                      <p className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">${item.price}</p>
                     </div>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-4">
                       <Button
                         size="icon"
                         variant="outline"
-                        className="w-8 h-8 bg-white/10 border-white/20 text-white"
+                        className="w-7 h-7 sm:w-8 sm:h-8 bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
                         onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
                       >
                         <Minus className="w-4 h-4" />
                       </Button>
-                      <span className="text-base font-medium w-18 text-center text-white">
+                      <span className="text-sm sm:text-base font-medium w-16 sm:w-18 text-center text-foreground">
                         {item.quantity} {item.quantity === 1 ? 'gramo' : 'gramos'}
                       </span>
                       <Button
                         size="icon"
                         variant="outline"
-                        className="w-8 h-8 bg-white/10 border-white/20 text-white"
+                        className="w-7 h-7 sm:w-8 sm:h-8 bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
                         onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                       >
                         <Plus className="w-4 h-4" />
@@ -210,7 +212,7 @@ const ShoppingCartComponent = ({
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="w-8 h-8 text-red-400 hover:text-red-300"
+                        className="w-7 h-7 sm:w-8 sm:h-8 text-destructive hover:text-destructive-foreground"
                         onClick={() => onRemoveItem(item.id)}
                       >
                         <X className="w-4 h-4" />
@@ -218,66 +220,66 @@ const ShoppingCartComponent = ({
                     </div>
                   </div>
                 ))}
-                <Separator className="bg-white/10" />
-                <div className="flex justify-between items-center font-bold text-xl text-white">
+                <Separator className="bg-border" />
+                <div className="flex justify-between items-center font-bold text-xl text-foreground">
                   <span>Total:</span>
-                  <span className="text-emerald-400">${cartTotal}</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">${cartTotal}</span>
                 </div>
 
                 {/* Fecha y Hora */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm text-gray-400">Fecha de Reserva</label>
+                      <label className="text-sm text-muted-foreground">Fecha de Reserva</label>
                       <Popover open={isDateOpen} onOpenChange={setIsDateOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
-                              !date && "text-gray-400"
+                              "w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground",
+                              !date && "text-muted-foreground"
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {date ? format(date, "PPP", { locale: es }) : "Selecciona una fecha"}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-slate-900 border-white/10" align="start">
+                        <PopoverContent className="w-auto p-0 bg-background border-border" align="start">
                           <Calendar
                             mode="single"
                             selected={date}
                             onSelect={handleDateSelect}
                             initialFocus
-                            className="rounded-md border-white/10"
+                            className="rounded-md border-border"
                           />
                         </PopoverContent>
                       </Popover>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm text-gray-400">Hora de Reserva</label>
+                      <label className="text-sm text-muted-foreground">Hora de Reserva</label>
                       <Popover open={isTimeOpen} onOpenChange={setIsTimeOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
-                              !time && "text-gray-400"
+                              "w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground",
+                              !time && "text-muted-foreground"
                             )}
                           >
                             <Clock className="mr-2 h-4 w-4" />
                             {time || "Selecciona una hora"}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-slate-900 border-white/10" align="start">
-                          <div className="grid grid-cols-4 gap-1 p-2">
+                        <PopoverContent className="w-auto p-0 bg-background border-border" align="start">
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 p-2">
                             {Array.from({ length: 24 }).map((_, i) => (
                               <Button
                                 key={i}
                                 variant="ghost"
                                 className={cn(
-                                  "h-8 w-16 text-sm text-white hover:bg-white/20",
-                                  time === `${i}:00` && "bg-emerald-500 hover:bg-emerald-600"
+                                  "h-7 sm:h-8 w-14 sm:w-16 text-xs sm:text-sm text-foreground hover:bg-accent hover:text-accent-foreground",
+                                  time === `${i}:00` && "bg-emerald-500 hover:bg-emerald-600 text-white"
                                 )}
                                 onClick={() => handleTimeSelect(`${i}:00`)}
                               >
@@ -292,10 +294,10 @@ const ShoppingCartComponent = ({
 
                   {/* Comentario */}
                   <div>
-                    <label className="text-sm text-gray-400 mb-2 block">Comentario (opcional)</label>
+                    <label className="text-sm text-muted-foreground mb-2 block">Comentario (opcional)</label>
                     <Textarea 
                       placeholder="Agrega algún comentario o instrucción especial..."
-                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 min-h-[100px]"
+                      className="bg-background text-foreground border-border placeholder:text-muted-foreground min-h-[80px] sm:min-h-[100px]"
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                     />
@@ -303,7 +305,7 @@ const ShoppingCartComponent = ({
                 </div>
 
                 <Button 
-                  className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white py-6 text-lg font-semibold shadow-xl hover:shadow-emerald-500/25 transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white py-4 sm:py-6 text-base sm:text-lg font-semibold shadow-xl hover:shadow-emerald-500/25 transition-all duration-300"
                   disabled={cart.length === 0 || !date || !time || isPending}
                   onClick={handleSubmitReservation}
                 >

@@ -27,3 +27,13 @@ export const getOrderByUserId = async(userId: string) => {
     throw new Error('Error al obtener las reservas del usuario')
   }
 }
+
+export const getOrderBySocioId = async(socioId: string) => {
+  try {
+    const res = await instance.get(`/order/socio/${socioId}`)
+    return res.data
+  } catch (error) {
+    console.error('Error fetching orders:', error)
+    throw new Error('Error al obtener las reservas del socio')
+  }
+}
