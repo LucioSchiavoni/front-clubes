@@ -47,6 +47,25 @@ export const useOrders = (clubId: string) => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['orders', socioId],
     queryFn: async () => {
+      const response = await getOrderBySocioId(socioId);
+      return response.data || [];
+    },
+    enabled: !!socioId,
+    refetchInterval: 5000, 
+  });
+
+  return {
+    orders: data || [],
+    isLoading,
+    error,
+  };
+}
+
+
+export const useOrdersBySocio = (socioId: string) => {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['ordersBySocio', socioId],
+    queryFn: async () => {
       try {
         const response = await getOrderBySocioId(socioId);
         if (response.data?.message === "No se encontraron órdenes") {
@@ -67,26 +86,6 @@ export const useOrders = (clubId: string) => {
     refetchInterval: 5000, 
   });
 
-  return {
-    orders: data || [],
-    isLoading,
-    error,
-  };
-}
-
-
-export const useOrdersBySocio = (socioId: string) => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['ordersBySocio', ],
-    queryFn: async () => {
-      const response = await getOrderBySocioId(socioId);
-      return response.data || [];
-    },
-    enabled: !!socioId,
-    refetchInterval: 5000, 
-  });
-
-  
   return {
     orders: data?.orders || [],
     message: data?.message || null,
