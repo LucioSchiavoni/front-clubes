@@ -17,13 +17,24 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { format } from "date-fns"
+import { format, isSameDay } from "date-fns"
 import { es } from "date-fns/locale"
 import type { CartItem } from '@/types/cart'
 import { useState, useEffect } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { createOrder, type ReservationData } from '@/api/order'
 import { useAuthStore } from '@/store/auth'
+import { getSchedules } from '@/api/clubDate'
+
+interface Schedule {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  maxCapacity: number;
+  isActive: boolean;
+  dayName: string;
+}
 
 interface ShoppingCartProps {
   cart: CartItem[]
@@ -31,6 +42,7 @@ interface ShoppingCartProps {
   cartTotal: number
   onUpdateQuantity: (productId: string, newQuantity: number) => void
   onRemoveItem: (productId: string) => void
+  clubId: string
 }
 
 const ShoppingCartComponent = ({ 
@@ -38,7 +50,8 @@ const ShoppingCartComponent = ({
   cartItemsCount, 
   cartTotal, 
   onUpdateQuantity, 
-  onRemoveItem 
+  onRemoveItem,
+  clubId
 }: ShoppingCartProps) => {
   const [date, setDate] = useState<Date>()
   const [time, setTime] = useState<string>()
@@ -47,11 +60,111 @@ const ShoppingCartComponent = ({
   const [comment, setComment] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const {profile} = useAuthStore()
+  const [availableTimes, setAvailableTimes] = useState<string[]>([])
   const [alert, setAlert] = useState<{
     type: 'success' | 'error' | null;
     message: string;
     description?: string;
   }>({ type: null, message: '' })
+
+  console.log('clubId recibido:', clubId)
+
+  // Obtener horarios del club
+  const { data: schedulesData, isLoading: isLoadingSchedules } = useQuery({
+    queryKey: ['schedules', clubId],
+    queryFn: () => {
+      if (!clubId) {
+        console.error('No hay clubId disponible')
+        return Promise.reject('No hay clubId disponible')
+      }
+      return getSchedules(clubId)
+    },
+    enabled: !!clubId
+  })
+
+  console.log('schedulesData:', schedulesData)
+
+  // Generar horarios disponibles basados en el horario del club
+  const generateAvailableTimes = (startTime: string, endTime: string) => {
+    const times: string[] = []
+    const [startHour] = startTime.split(':').map(Number)
+    const [endHour] = endTime.split(':').map(Number)
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      const timeString = `${hour.toString().padStart(2, '0')}:00`
+      times.push(timeString)
+    }
+    return times
+  }
+
+  // Función para deshabilitar fechas no disponibles
+  const disabledDays = (date: Date) => {
+    if (!schedulesData?.data?.data || isLoadingSchedules) {
+      console.log('No hay datos de horarios o están cargando');
+      return false; // Permitimos todas las fechas mientras se cargan los datos
+    }
+
+    const jsDay = date.getDay();
+    const dayOfWeek = jsDay === 0 ? 7 : jsDay;
+    
+    console.log('Fecha a verificar:', date);
+    console.log('Día de la semana (JS):', jsDay);
+    console.log('Día de la semana (Ajustado):', dayOfWeek);
+    console.log('Horarios disponibles:', schedulesData.data.data);
+    
+    // Accedemos correctamente a los datos del array anidado
+    const schedules = Array.isArray(schedulesData.data.data) ? schedulesData.data.data : [];
+    
+    const isDisabled = !schedules.some(
+      (schedule: Schedule) => {
+        console.log('Comparando horario:', schedule);
+        console.log('¿Coincide el día?', schedule.dayOfWeek === dayOfWeek);
+        console.log('¿Está activo?', schedule.isActive);
+        return schedule.dayOfWeek === dayOfWeek && schedule.isActive;
+      }
+    );
+    
+    console.log('¿Está deshabilitada la fecha?', isDisabled);
+    return isDisabled;
+  }
+
+  // Verificar disponibilidad cuando se selecciona una fecha
+  useEffect(() => {
+    if (date && schedulesData?.data?.data) {
+      console.log('Fecha seleccionada:', date);
+      console.log('Horarios disponibles:', schedulesData.data.data);
+      
+      const jsDay = date.getDay();
+      const dayOfWeek = jsDay === 0 ? 7 : jsDay;
+      
+      console.log('Día de la semana (JS):', jsDay);
+      console.log('Día de la semana (Ajustado):', dayOfWeek);
+      
+      // Accedemos correctamente a los datos del array anidado
+      const schedules = Array.isArray(schedulesData.data.data) ? schedulesData.data.data : [];
+      
+      const scheduleForDay = schedules.find(
+        (schedule: Schedule) => {
+          console.log('Buscando horario para el día:', schedule);
+          return schedule.dayOfWeek === dayOfWeek && schedule.isActive;
+        }
+      );
+
+      console.log('Horario encontrado:', scheduleForDay);
+
+      if (scheduleForDay) {
+        const times = generateAvailableTimes(scheduleForDay.startTime, scheduleForDay.endTime);
+        console.log('Horas generadas:', times);
+        setAvailableTimes(times);
+      } else {
+        setAvailableTimes([]);
+        setAlert({
+          type: 'error',
+          message: 'No hay horarios disponibles para esta fecha'
+        });
+      }
+    }
+  }, [date, schedulesData])
 
   useEffect(() => {
     if (alert.type) {
@@ -64,6 +177,7 @@ const ShoppingCartComponent = ({
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate)
+    setTime(undefined)
     setIsDateOpen(false)
   }
 
@@ -71,6 +185,7 @@ const ShoppingCartComponent = ({
     setTime(selectedTime)
     setIsTimeOpen(false)
   }
+
   const queryClient = useQueryClient()
 
   const { mutate: submitReservation, isPending } = useMutation({
@@ -130,7 +245,7 @@ const ShoppingCartComponent = ({
     <>
       {alert.type && (
         <div className={cn(
-          "fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-md animate-in slide-in-from-top-5",
+          "fixed top-4 right-4 z-[70] p-4 rounded-lg shadow-lg max-w-md animate-in slide-in-from-top-5",
           alert.type === 'success' ? 'bg-emerald-500/90 text-white' : 'bg-red-500/90 text-white'
         )}>
           <div className="flex items-start gap-3">
@@ -153,7 +268,7 @@ const ShoppingCartComponent = ({
           <Button
             variant="outline"
             size="icon"
-            className="relative bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
+            className="relative bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground z-[70]"
           >
             <ShoppingCartIcon className="w-5 h-5" />
             {cartItemsCount > 0 && (
@@ -251,6 +366,9 @@ const ShoppingCartComponent = ({
                             onSelect={handleDateSelect}
                             initialFocus
                             className="rounded-md border-border"
+                            disabled={disabledDays}
+                            fromDate={new Date()}
+                            toDate={new Date(new Date().setMonth(new Date().getMonth() + 1))}
                           />
                         </PopoverContent>
                       </Popover>
@@ -266,6 +384,7 @@ const ShoppingCartComponent = ({
                               "w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground",
                               !time && "text-muted-foreground"
                             )}
+                            disabled={!date}
                           >
                             <Clock className="mr-2 h-4 w-4" />
                             {time || "Selecciona una hora"}
@@ -273,19 +392,25 @@ const ShoppingCartComponent = ({
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0 bg-background border-border" align="start">
                           <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 p-2">
-                            {Array.from({ length: 24 }).map((_, i) => (
-                              <Button
-                                key={i}
-                                variant="ghost"
-                                className={cn(
-                                  "h-7 sm:h-8 w-14 sm:w-16 text-xs sm:text-sm text-foreground hover:bg-accent hover:text-accent-foreground",
-                                  time === `${i}:00` && "bg-emerald-500 hover:bg-emerald-600 text-white"
-                                )}
-                                onClick={() => handleTimeSelect(`${i}:00`)}
-                              >
-                                {`${i}:00`}
-                              </Button>
-                            ))}
+                            {availableTimes.length > 0 ? (
+                              availableTimes.map((timeSlot) => (
+                                <Button
+                                  key={timeSlot}
+                                  variant="ghost"
+                                  className={cn(
+                                    "h-7 sm:h-8 w-14 sm:w-16 text-xs sm:text-sm text-foreground hover:bg-accent hover:text-accent-foreground",
+                                    time === timeSlot && "bg-emerald-500 hover:bg-emerald-600 text-white"
+                                  )}
+                                  onClick={() => handleTimeSelect(timeSlot)}
+                                >
+                                  {timeSlot}
+                                </Button>
+                              ))
+                            ) : (
+                              <div className="col-span-full text-center text-sm text-muted-foreground py-2">
+                                No hay horarios disponibles
+                              </div>
+                            )}
                           </div>
                         </PopoverContent>
                       </Popover>

@@ -70,102 +70,76 @@ const FeaturedSection = ({
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <div className="group">
-            <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-xl">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Users className="h-5 w-5 text-blue-400" />
+            <div className="p-3 sm:p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="p-1.5 bg-blue-500/10 rounded-lg">
+                  <Users className="h-4 w-4 text-blue-400/80" />
                 </div>
-                <div className="text-xs sm:text-sm text-white/70 uppercase tracking-wider font-semibold">
+                <div className="text-xs text-white/50 uppercase tracking-wider font-medium">
                   Total Socios
                 </div>
               </div>
-              <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
+              <div className="text-xl sm:text-2xl font-bold text-white/90 drop-shadow-lg">
                 {totalSocios.toLocaleString()}
               </div>
-              {/* <div className="text-xs text-emerald-300 mt-1 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +12% este mes
-              </div> */}
             </div>
           </div>
 
           <div className="group">
-            <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-xl">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <Package className="h-5 w-5 text-purple-400" />
+            <div className="p-3 sm:p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="p-1.5 bg-purple-500/10 rounded-lg">
+                  <Package className="h-4 w-4 text-purple-400/80" />
                 </div>
-                <div className="text-xs sm:text-sm text-white/70 uppercase tracking-wider font-semibold">Productos</div>
+                <div className="text-xs text-white/50 uppercase tracking-wider font-medium">Productos</div>
               </div>
-              <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
+              <div className="text-xl sm:text-2xl font-bold text-white/90 drop-shadow-lg">
                 {totalProductos.toLocaleString()}
               </div>
-              {/* <div className="text-xs text-emerald-300 mt-1 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +5% este mes
-              </div> */}
             </div>
           </div>
 
           <div className="group">
-            <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-xl">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="p-2 bg-orange-500/20 rounded-lg">
-                  <Calendar className="h-5 w-5 text-orange-400" />
+            <div className="p-3 sm:p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="p-1.5 bg-orange-500/10 rounded-lg">
+                  <Calendar className="h-4 w-4 text-orange-400/80" />
                 </div>
-                <div className="text-xs sm:text-sm text-white/70 uppercase tracking-wider font-semibold">Reservas</div>
+                <div className="text-xs text-white/50 uppercase tracking-wider font-medium">Reservas</div>
               </div>
-              <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
+              <div className="text-xl sm:text-2xl font-bold text-white/90 drop-shadow-lg">
                 {totalReservas.toLocaleString()}
               </div>
-              {/* <div className="text-xs text-emerald-300 mt-1 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +8% este mes
-              </div> */}
             </div>
           </div>
 
           <div className="group">
-            <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-xl">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="p-2 bg-emerald-500/20 rounded-lg">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+            <div className="p-3 sm:p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="p-1.5 bg-emerald-500/10 rounded-lg">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400/80" />
                 </div>
-                <div className="text-xs sm:text-sm text-white/70 uppercase tracking-wider font-semibold">Activos</div>
+                <div className="text-xs text-white/50 uppercase tracking-wider font-medium">Activos</div>
               </div>
-              <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
+              <div className="text-xl sm:text-2xl font-bold text-white/90 drop-shadow-lg">
                 {totalActivos.toLocaleString()}
               </div>
-              {/* <div className="text-xs text-emerald-300 mt-1 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +3% este mes
-              </div> */}
             </div>
           </div>
         </div>
 
         {/* Bottom Stats Bar */}
-        <div className="mt-8 pt-6 border-t border-white/20">
-          <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+        <div className="mt-6 pt-4 border-t border-white/10">
+          <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
             <div className="flex items-center space-x-6">
               <div className="text-center">
-                {/* <div className="text-xs text-white/60 uppercase tracking-wide">Tasa Actividad</div>
-                <div className="text-lg font-bold text-white">
-                  {totalSocios > 0 ? Math.round((totalActivos / totalSocios) * 100) : 0}%
-                </div> */}
+                <div className="text-xs text-white/40 uppercase tracking-wide">Stock Total</div>
+                <div className="text-base font-bold text-white/80">{totalGramos}g</div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-white/60 uppercase tracking-wide">Stock Total</div>
-                <div className="text-lg font-bold text-white">{totalGramos}g</div>
-              </div>
-              {/* <div className="text-center">
-                <div className="text-xs text-white/60 uppercase tracking-wide">Ingresos Mes</div>
-                <div className="text-lg font-bold text-white">€2,450</div>
-              </div> */}
             </div>
 
-            <div className="flex items-center space-x-2 text-xs text-white/60">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+            <div className="flex items-center space-x-2 text-xs text-white/40">
+              <div className="w-1.5 h-1.5 bg-emerald-400/60 rounded-full"></div>
               <span>Última actualización: hace 2 min</span>
             </div>
           </div>

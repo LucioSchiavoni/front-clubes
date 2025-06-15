@@ -1,22 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { getOrderBySocioId } from "@/api/order";
+import { getOrderByUserId, getOrderBySocioId } from "@/api/order";
 import { useAuthStore } from "@/store/auth";
 
 export interface Order {
   id: string;
   userId: string;
   total: number;
-  status: 'PENDING' | 'COMPLETED' | 'CANCELED';
-  createdAt: string;
-  comment?: string;
   dateOrder: string;
   hourOrder: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    clubId: string;
-  };
+  comment: string;
+  status: "PENDING" | "COMPLETED" | "CANCELED";
+  createdAt: string;
+  updatedAt: string;
   items: {
     id: string;
     orderId: string;
@@ -38,19 +33,30 @@ export interface Order {
       clubId: string;
     };
   }[];
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    clubId: string;
+  };
 }
 
 export const useOrders = (clubId: string) => {
-
   const { profile } = useAuthStore()
   const socioId = profile?.data?.id;
   const { data, isLoading, error } = useQuery({
-    queryKey: ['orders', socioId],
+    queryKey: ['orders', clubId],
     queryFn: async () => {
-      const response = await getOrderBySocioId(socioId);
-      return response.data || [];
+      const response = profile?.data?.rol === 'CLUB' 
+        ? await getOrderByUserId(clubId)
+        : await getOrderBySocioId(socioId);
+      
+      if (response?.data) {
+        return response.data;
+      }
+      return [];
     },
-    enabled: !!socioId,
+    enabled: !!socioId && !!clubId,
     refetchInterval: 5000, 
   });
 

@@ -116,20 +116,20 @@ export default function OrderHistory() {
     })
 
     return filtered.sort((a: Order, b: Order) => {
-      const dateA = parseISO(a.dateOrder)
-      const dateB = parseISO(b.dateOrder)
+      const dateTimeA = new Date(`${a.dateOrder}T${a.hourOrder}`).getTime()
+      const dateTimeB = new Date(`${b.dateOrder}T${b.hourOrder}`).getTime()
 
       switch (sortBy) {
         case "newest":
-          return dateB.getTime() - dateA.getTime()
+          return dateTimeB - dateTimeA
         case "oldest":
-          return dateA.getTime() - dateB.getTime()
+          return dateTimeA - dateTimeB
         case "highest":
           return b.total - a.total
         case "lowest":
           return a.total - b.total
         default:
-          return dateB.getTime() - dateA.getTime()
+          return dateTimeB - dateTimeA
       }
     })
   }, [orders, searchTerm, statusFilter, sortBy])

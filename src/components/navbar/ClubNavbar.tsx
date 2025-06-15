@@ -14,6 +14,7 @@ import {
   X,
   LogOut,
   Loader2,
+  Clock,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -24,48 +25,32 @@ import { useAuthStore } from "@/store/auth"
 import { useNavigate } from "react-router-dom"
 import { useClub } from "@/hooks/useClub"
 
-const navigationItems = [
-  {
-    title: "Inicio",
-    icon: Grid3X3,
-    href: "/dashboard",
-    badge: "Nuevo",
-  },
-  {
-    title: "Estadísticas",
-    icon: BarChart3,
-    href: "/stats",
-  },
-  {
-    title: "Tendencias",
-    icon: TrendingUp,
-    href: "/trending",
-    badge: "🔥",
-  },
-  {
-    title: "Favoritos",
-    icon: Heart,
-    href: "/favorites",
-  },
-  {
-    title: "Mi Perfil",
-    icon: User,
-    href: "/profile",
-  },
-  {
-    title: "Billetera",
-    icon: Wallet,
-    href: "/wallet",
-  },
-]
-
 export default function ClubNavbar() {
   const [isExpanded, setIsExpanded] = React.useState(false)
   const [isMobileOpen, setIsMobileOpen] = React.useState(false)
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout)
   const { club, isLoading } = useClub()
+  const {profile} = useAuthStore()
 
+  const navigationItems = [
+    {
+      title: "Inicio",
+      icon: Grid3X3,
+      href: "/dashboard",
+      badge: "Nuevo",
+    },
+    {
+      title: "Horarios",
+      icon: Clock,
+      href: `/horarios/${profile.data.clubId}`,
+    },
+    {
+      title: "Mi Perfil",
+      icon: User,
+      href: "/profile",
+    },
+  ]
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -179,8 +164,6 @@ export default function ClubNavbar() {
             )}
           </div>
         </div>
-
-
 
         {/* Navigation */}
         <div className="flex-1 overflow-y-auto">

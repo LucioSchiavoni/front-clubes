@@ -107,7 +107,7 @@ export default function ClubNavbar() {
       <Button
         variant="outline"
         size="icon"
-        className="fixed top-20 left-4 z-[60] lg:hidden bg-background/95 backdrop-blur-md border-border/50 shadow-lg"
+        className="fixed top-20 left-4 z-[50] lg:hidden bg-background/95 backdrop-blur-md border-border/50 shadow-lg"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         data-sidebar="mobile-trigger"
       >
@@ -125,7 +125,7 @@ export default function ClubNavbar() {
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <div
-          className="fixed top-0 inset-x-0 bottom-0 bg-black/70 backdrop-blur-md z-40 lg:hidden transition-all duration-300 ease-out"
+          className="fixed top-0 inset-x-0 bottom-0 bg-black/70 backdrop-blur-md z-[45] lg:hidden transition-all duration-300 ease-out"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
@@ -133,7 +133,7 @@ export default function ClubNavbar() {
       {/* Sidebar */}
       <div
         className={`
-          fixed lg:relative z-50 h-[calc(100vh-5rem)] top-20 lg:top-0 bg-card/95 backdrop-blur-md border-r border-border/50 
+          fixed lg:relative z-[45] h-[calc(100vh-5rem)] top-20 lg:top-0 bg-card/95 backdrop-blur-md border-r border-border/50 
           transition-all duration-300 ease-out shadow-2xl lg:shadow-none
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           ${isExpanded ? "w-80" : "w-16 lg:w-20"}

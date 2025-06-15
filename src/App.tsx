@@ -7,6 +7,8 @@ import AboutPage from "@/pages/about";
 import DashboardPage from "@/pages/dashboardPage";
 import ConfigPage from "./pages/configPage";
 import OrdersPage from "./pages/OrdersPage";
+import ClubDatesPage from "./pages/clubDatesPage";
+
 
 function App() {
   return (
@@ -18,6 +20,7 @@ function App() {
       <Route element={<OrdersPage/>} path="/orders" /> 
       <Route element={<BlogPage />} path="/blog" />
       <Route element={<AboutPage />} path="/about" />
+      <Route element={<ClubDatesPage/>} path="/horarios/:clubId" />
     </Routes>
   );
 }

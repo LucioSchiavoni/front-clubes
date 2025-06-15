@@ -52,7 +52,8 @@ const ClubDashboard = () => {
     searchTerm,
     setSearchTerm,
   } = useSocios(club?.id || "")
-  const { orders, isLoading: isOrdersLoading, error: ordersError } = useOrders(club?.id || "")
+  const { orders, isLoading: isOrdersLoading, error: ordersError } = useOrders(profile?.data?.clubId || '')
+
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
   const [isAddProductOpen, setIsAddProductOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -159,8 +160,6 @@ const ClubDashboard = () => {
     return <AddClubForm />
   }
 
-
-  
 
   if (isClubLoading) {
     return (
@@ -272,7 +271,7 @@ const ClubDashboard = () => {
                       <Loader2 className="h-8 w-8 animate-spin text-green-600" />
                       <span className="ml-2">Cargando reservas...</span>
                     </div>
-                  ) : orders.length === 0 ? (
+                  ) : !Array.isArray(orders) || orders.length === 0 ? (
                     <div className="text-center py-8">
                       <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                       <p className="text-lg font-medium">No hay reservas</p>
@@ -281,15 +280,15 @@ const ClubDashboard = () => {
                   ) : (
                     <div className="space-y-4">
                       {orders.map((order: Order) => (
-                        <div key={order.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border border-slate-200  dark:border-slate-800 rounded-lg space-y-3 sm:space-y-0 bg-transparent dark:bg-slate-900/50 transition-colors">
+                        <div key={order.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border border-slate-200 dark:border-slate-800 rounded-lg space-y-3 sm:space-y-0 bg-transparent dark:bg-slate-900/50 transition-colors">
                           <div className="flex items-start space-x-4 w-full sm:w-auto">
                             <Avatar className="h-10 w-10 border-2 border-green-500/20">
-                              <AvatarFallback className="capitalize bg-green-500/10  text-green-400">{order.user.name.charAt(0)}</AvatarFallback>
+                              <AvatarFallback className="capitalize bg-green-500/10 text-green-400">{order.user.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="space-y-1.5">
                               <div className="flex items-center space-x-2">
                                 <p className="font-medium capitalize dark:text-white">{order.user.name}</p>
-                                <Badge variant={order.status === "COMPLETED" ? "default" : "secondary"} className={ order.status === "COMPLETED" ? `bg-green-700 uppercase` : order.status === "CANCELED" ? `bg-red-800 uppercase` : `bg-orange-800 uppercase`}>
+                                <Badge variant={order.status === "COMPLETED" ? "default" : "secondary"} className={order.status === "COMPLETED" ? `bg-green-700 uppercase` : order.status === "CANCELED" ? `bg-red-800 uppercase` : `bg-orange-800 uppercase`}>
                                   {order.status === "PENDING" ? "Pendiente" : 
                                    order.status === "COMPLETED" ? "Completada" : 
                                    "Cancelada"}
