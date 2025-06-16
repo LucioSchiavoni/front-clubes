@@ -1,4 +1,5 @@
 import DateOrdersForm from '@/components/forms/DateOrdersForm'
+import ScheduleForm from '@/components/forms/ScheduleForm/ScheduleForm';
 import DefaultLayout from '@/layouts/default'
 import { useParams } from 'react-router-dom'
 
@@ -17,7 +18,7 @@ const ClubDatesPage = () => {
 
     return (
         <DefaultLayout>
-            <DateOrdersForm clubId={clubId}/>
+        <DateOrdersForm  clubId={clubId}/>
         </DefaultLayout>
     )
 }

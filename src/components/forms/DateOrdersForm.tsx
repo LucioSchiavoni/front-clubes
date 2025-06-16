@@ -822,17 +822,6 @@ export default function ScheduleForm({ clubId }: ScheduleFormProps) {
         )}
 
         <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              form.reset();
-              setError(null);
-            }}
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Guardando..." : "Guardar Configuración"}
           </Button>
