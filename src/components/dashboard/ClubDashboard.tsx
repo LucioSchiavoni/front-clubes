@@ -213,22 +213,22 @@ const ClubDashboard = () => {
           />
 
           <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
-            <TabsList className="w-full sm:w-auto bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+            <TabsList className="w-full sm:w-auto tabs-list rounded-lg">
               <TabsTrigger 
                 value="overview" 
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white text-slate-600 dark:text-slate-400"
+                className="tabs-trigger"
               >
                 Vista General
               </TabsTrigger>
               <TabsTrigger 
                 value="products" 
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white text-slate-600 dark:text-slate-400"
+                className="tabs-trigger"
               >
                 Productos
               </TabsTrigger>
               <TabsTrigger 
                 value="orders" 
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white text-slate-600 dark:text-slate-400"
+                className="tabs-trigger"
               >
                 Reservas
               </TabsTrigger>
