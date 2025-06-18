@@ -8,6 +8,7 @@ import DashboardPage from "@/pages/dashboardPage";
 import ConfigPage from "./pages/configPage";
 import OrdersPage from "./pages/OrdersPage";
 import ClubDatesPage from "./pages/clubDatesPage";
+import ProfileUserPage from "./pages/profileUserPage";
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
       <Route element={<BlogPage />} path="/blog" />
       <Route element={<AboutPage />} path="/about" />
       <Route element={<ClubDatesPage/>} path="/horarios/:clubId" />
+      <Route element={<ProfileUserPage/>} path="/profile" />
     </Routes>
   );
 }

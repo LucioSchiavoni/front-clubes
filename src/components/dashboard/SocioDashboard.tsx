@@ -1,31 +1,20 @@
 import { useState, useRef } from "react"
 import {
-  ShoppingCart,
-  User,
   Search,
   Filter,
-  Heart,
-  Clock,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  LogOut,
-  Minus,
+  Leaf,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useClub } from "@/hooks/useClub"
 import { useProducts } from "@/hooks/useProducts"
 import { useAuthStore } from "@/store/auth"
-import { useOrdersBySocio } from "@/hooks/useOrders"
 import ShoppingCartComponent from '@/components/cart/ShoppingCart'
 import { FeaturedProductCard } from "@/components/products/FeaturedProductCard"
 import OrderSocios from "../orders/OrderSocios"
-import { Order } from "@/types/order"
 import { ThemeSwitch } from "../theme-switch"
 
 interface Product {
@@ -135,8 +124,19 @@ export default function Component() {
     )
   }
 
+    if(club.active === false) {
+    return (
+      <div className="h-full flex items-center justify-center bg-white dark:bg-slate-800">
+        <div className="text-center">
+          <Leaf className="h-12 w-12 text-green-600 mx-auto mb-4" />
+          <p className="text-green-700 font-medium">Tu club está inactivo. Por favor, contacta con el administrador.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden pt-16">
+    <div className="min-h-screen bg-background  overflow-x-hidden pt-16">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -178,12 +178,9 @@ export default function Component() {
         </div>
       </header>
 
-      {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Left Column - Products */}
           <div className="flex-1">
-            {/* Filters */}
             <div className="flex flex-col gap-4 mb-12">
               <div className="relative w-full">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
@@ -211,7 +208,6 @@ export default function Component() {
               </div>
             </div>
 
-            {/* Featured Products Carousel */}
             <div className="mb-16">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
@@ -255,7 +251,7 @@ export default function Component() {
             </div>
           </div>
 
-          {/* Right Column - Orders */}
+
           <div className="w-full lg:w-96">
             <div className="lg:sticky lg:top-24">
               <h2 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent mb-6">

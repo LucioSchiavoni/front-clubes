@@ -160,6 +160,16 @@ const ClubDashboard = () => {
     return <AddClubForm />
   }
 
+  if(club.active === false) {
+    return (
+      <div className="h-full flex items-center justify-center bg-white dark:bg-slate-800">
+        <div className="text-center">
+          <Leaf className="h-12 w-12 text-green-600 mx-auto mb-4" />
+          <p className="text-green-700 font-medium">Tu club está inactivo. Por favor, contacta con el administrador.</p>
+        </div>
+      </div>
+    )
+  }
 
   if (isClubLoading) {
     return (
