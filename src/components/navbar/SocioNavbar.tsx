@@ -80,7 +80,7 @@ export default function ClubNavbar() {
     }
   }, [isMobileOpen])
 
-  // Prevent body scroll when mobile menu is open
+
   React.useEffect(() => {
     if (isMobileOpen) {
       document.body.style.overflow = "hidden"

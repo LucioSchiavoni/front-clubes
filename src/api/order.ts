@@ -37,3 +37,13 @@ export const getOrderBySocioId = async(socioId: string) => {
     throw new Error('Error al obtener las reservas del socio')
   }
 }
+
+export const getGramsBySocio = async(userId: string) => {
+    try {
+      const res = await instance.get(`/user/${userId}/monthly-stats`)
+      return res.data
+    } catch (error) {
+      console.log(error)
+    }
+}
+
