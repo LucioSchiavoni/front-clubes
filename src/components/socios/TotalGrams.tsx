@@ -3,31 +3,6 @@ import { useGramsBySocio } from "@/hooks/useGramsBySocio";
 import { Loader2 } from "lucide-react";
 
 const TotalGrams = () => {
-  const { profile } = useAuthStore();
-  const userId = profile?.data?.id;
-  const { data, isLoading, error } = useGramsBySocio(userId);
-
-  console.log(userId)
-  console.log("la data:",data)
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-6">
-        <Loader2 className="animate-spin text-emerald-600 w-6 h-6 mr-2" />
-        <span className="text-emerald-700 font-medium">Cargando tus estadísticas...</span>
-      </div>
-    );
-  }
-
-  if (error || !data?.success) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-center">
-        Error al cargar los datos de consumo.
-      </div>
-    );
-  }
-
-
   return (
     <div className="bg-emerald-900/90 rounded-2xl shadow-lg p-6 flex flex-col items-center text-white">
       <h3 className="text-lg font-semibold mb-2">Consumo del mes</h3>
