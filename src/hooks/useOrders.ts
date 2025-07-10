@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { getOrderByUserId, getOrderBySocioId } from "@/api/order";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getOrderByUserId, getOrderBySocioId, putCompleteOrder } from "@/api/order";
 import { useAuthStore } from "@/store/auth";
 
 export interface Order {
@@ -44,7 +44,7 @@ export interface Order {
 export const useOrders = (clubId: string) => {
   const { profile } = useAuthStore()
   const socioId = profile?.data?.id;
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['orders', clubId],
     queryFn: async () => {
       const response = profile?.data?.rol === 'CLUB' 
@@ -64,6 +64,7 @@ export const useOrders = (clubId: string) => {
     orders: data || [],
     isLoading,
     error,
+    refetch,
   };
 }
 
@@ -99,3 +100,21 @@ export const useOrdersBySocio = (socioId: string) => {
     error,
   };
 }
+
+export const useCompleteOrder = () => {
+  const queryClient = useQueryClient();
+  const { profile } = useAuthStore();
+  const clubId = profile?.data?.clubId;
+
+  return useMutation({
+    mutationFn: putCompleteOrder,
+    onSuccess: () => {
+      // Invalidar las queries relacionadas con órdenes
+      queryClient.invalidateQueries({ queryKey: ['orders', clubId] });
+      queryClient.invalidateQueries({ queryKey: ['ordersBySocio'] });
+    },
+    onError: (error) => {
+      console.error('Error al completar la orden:', error);
+    },
+  });
+};

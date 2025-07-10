@@ -4,7 +4,10 @@ import { getGramsBySocio } from "@/api/order";
 export const useGramsBySocio = (userId: string) => {
   return useQuery({
     queryKey: ["gramsBySocio", userId],
-    queryFn: () => getGramsBySocio(userId),
+    queryFn: async () => {
+      const response = await getGramsBySocio(userId);
+      return response.data || [];
+    },
     enabled: !!userId,
     refetchOnWindowFocus: false,
   });

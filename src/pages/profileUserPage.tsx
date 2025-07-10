@@ -1,4 +1,5 @@
 import TotalGrams from "@/components/socios/TotalGrams"
+import DefaultLayout from "@/layouts/default"
 
 
 const ProfileUserPage = () => {
@@ -7,10 +8,9 @@ const ProfileUserPage = () => {
 
 
   return (
-    <div>
-        <h1>titulo del page</h1>
+    <DefaultLayout>
         <TotalGrams/>
-    </div>
+    </DefaultLayout>
   )
 }
 

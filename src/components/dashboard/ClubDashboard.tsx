@@ -31,6 +31,9 @@ import DashboardHeader from "@/components/club/header/DashboardHeader"
 import FeaturedSection from "@/components/club/FeaturedSection"
 import StatsGrid from "@/components/club/StatsGrid"
 import RecentActivity from "@/components/club/RecentActivity"
+import { OrderList } from "../orders/OrderList"
+import OrdersClub from "../orders/OrdersClub"
+import { ScrollShadow } from "@heroui/scroll-shadow"
 
 const ClubDashboard = () => {
   const { profile } = useAuthStore()
@@ -160,17 +163,6 @@ const ClubDashboard = () => {
     return <AddClubForm />
   }
 
-  if(club.active === false) {
-    return (
-      <div className="h-full flex items-center justify-center bg-white dark:bg-slate-800">
-        <div className="text-center">
-          <Leaf className="h-12 w-12 text-green-600 mx-auto mb-4" />
-          <p className="text-green-700 font-medium">Tu club está inactivo. Por favor, contacta con el administrador.</p>
-        </div>
-      </div>
-    )
-  }
-
   if (isClubLoading) {
     return (
       <div className="h-full flex items-center justify-center bg-white dark:bg-slate-800">
@@ -188,6 +180,17 @@ const ClubDashboard = () => {
         <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 text-center">
           <Leaf className="h-16 w-16 text-green-600 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-800">No se encontró información del club</h2>
+        </div>
+      </div>
+    )
+  }
+
+  if(club.active === false) {
+    return (
+      <div className="h-full flex items-center justify-center bg-white dark:bg-slate-800">
+        <div className="text-center">
+          <Leaf className="h-12 w-12 text-green-600 mx-auto mb-4" />
+          <p className="text-green-700 font-medium">Tu club está inactivo. Por favor, contacta con el administrador.</p>
         </div>
       </div>
     )
@@ -270,79 +273,10 @@ const ClubDashboard = () => {
             </TabsContent>
 
             <TabsContent value="orders">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Reservas</CardTitle>
-                  <CardDescription>Gestiona las reservas de productos</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isOrdersLoading ? (
-                    <div className="flex items-center justify-center p-8">
-                      <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-                      <span className="ml-2">Cargando reservas...</span>
-                    </div>
-                  ) : !Array.isArray(orders) || orders.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                      <p className="text-lg font-medium">No hay reservas</p>
-                      <p className="text-sm text-muted-foreground">Las reservas aparecerán aquí</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {orders.map((order: Order) => (
-                        <div key={order.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border border-slate-200 dark:border-slate-800 rounded-lg space-y-3 sm:space-y-0 bg-transparent dark:bg-slate-900/50 transition-colors">
-                          <div className="flex items-start space-x-4 w-full sm:w-auto">
-                            <Avatar className="h-10 w-10 border-2 border-green-500/20">
-                              <AvatarFallback className="capitalize bg-green-500/10 text-green-400">{order.user.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="space-y-1.5">
-                              <div className="flex items-center space-x-2">
-                                <p className="font-medium capitalize dark:text-white">{order.user.name}</p>
-                                <Badge variant={order.status === "COMPLETED" ? "default" : "secondary"} className={order.status === "COMPLETED" ? `bg-green-700 uppercase` : order.status === "CANCELED" ? `bg-red-800 uppercase` : `bg-orange-800 uppercase`}>
-                                  {order.status === "PENDING" ? "Pendiente" : 
-                                   order.status === "COMPLETED" ? "Completada" : 
-                                   "Cancelada"}
-                                </Badge>
-                              </div>
-                              <div className="space-y-1">
-                                <p className="text-md dark:text-emerald-400 font-medium">
-                                  {order.items.map(item => `${item.product.name} (${item.quantity}gr)`).join(', ')}
-                                </p>
-                                <div className="flex items-center space-x-2 text-md capitalize font-semibold dark:text-slate-400">
-                                  <span className="flex items-center">
-                                    <Calendar className="h-3 w-3 mr-1" />
-                                    {format(parseISO(order.dateOrder), "EEEE d 'de' MMMM", { locale: es })}
-                                  </span>
-                                  <span className="flex items-center">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    {order.hourOrder}
-                                  </span>
-                                </div>
-                                <div className="text-xs dark:text-white">
-                                  {order.comment ? (
-                                    <p className="flex items-start">
-                                      <span className="mr-1">💬</span>
-                                      <span>{order.comment}</span>
-                                    </p>
-                                  ) : (
-                                    <p className="flex items-center text-slate-400">
-                                      <span className="mr-1">💬</span>
-                                      Sin comentarios
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-slate-800 pt-3 sm:pt-0 sm:pl-4">
-                            <p className="text-lg font-bold text-green-600">€{order.total}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <ScrollShadow hideScrollBar className="w-full h-[calc(100vh-12rem)]">
+                 <OrdersClub />
+              </ScrollShadow>
+             
             </TabsContent>
           </Tabs>
         </div>

@@ -43,7 +43,16 @@ export const getGramsBySocio = async(userId: string) => {
       const res = await instance.get(`/user/${userId}/monthly-stats`)
       return res.data
     } catch (error) {
-      console.log(error)
+      throw new Error('Error al obtener las estadísticas mensuales del socio')
     }
 }
 
+
+export const putCompleteOrder = async(orderId: string) => {
+  try {
+    const res = await instance.put(`/order/${orderId}/complete`)
+    return res.data
+  } catch (error) {
+    throw new Error('Error al cambiar el status de la orden')
+  }
+}

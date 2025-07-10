@@ -43,7 +43,7 @@ const capacityOptions = [
   { value: "25", label: "25 personas", desc: "Capacidad máxima" },
 ]
 
-// Validaciones (mantener las mismas del código original)
+
 const validateTimeRange = (startTime: string, endTime: string) => {
   if (!startTime || !endTime) return true
   return new Date(`2000-01-01T${endTime}`) > new Date(`2000-01-01T${startTime}`)
