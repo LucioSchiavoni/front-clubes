@@ -9,7 +9,7 @@ import { useMutation } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 
@@ -60,78 +60,68 @@ const LoginForm: React.FC = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div
-        className="w-full max-w-lg rounded-2xl shadow-2xl"
-        style={{
-          backgroundImage: "url('/socialclub.jpeg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <Card className="bg-transparent p-8 ">
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-white/90">
-                  Email
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 h-5 w-5" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 h-12 text-lg"
-                    placeholder="tu@email.com"
-                    required
-                  />
-                </div>
+    <div className="flex items-center justify-center  text-club-green px-4">
+      <Card className="bg-white border border-club-light shadow-xl rounded-xl p-8 max-w-md w-full">
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-club-green text-start flex font-medium">
+                Email
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-club-green h-5 w-5" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-12 bg-white border border-club-light text-club-dark placeholder:text-club-light focus:border-club-green focus:ring-club-green h-12 text-lg rounded-md"
+                  placeholder="tu@email.com"
+                  required
+                />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-white/90">
-                  Contraseña
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 h-5 w-5" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-12 pr-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 h-12 text-lg"
-                    placeholder="••••••••"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/70"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-club-green text-start flex font-medium">
+                Contraseña
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-club-green h-5 w-5" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-12 pr-12 bg-white border border-club-light text-club-dark placeholder:text-club-light focus:border-club-green focus:ring-club-green h-12 text-lg rounded-md"
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-club-green hover:text-club-greenHover"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
+            </div>
 
-              {error && (
-                <Alert className="bg-red-500/10 border-red-500/20 text-red-200">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+            {error && (
+              <Alert className="bg-club-greenHover/10 border border-club-green text-club-greenHover">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-green-800 via-green-900 to-green-800 text-black font-semibold transition-all duration-300 transform hover:scale-105 h-12 text-lg"
-                disabled={loginMutation.isPending}
-              >
-                {loginMutation.isPending ? "Iniciando sesión..." : "Acceder al Club"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+            <Button
+              type="submit"
+              className="w-full bg-club-green text-white font-semibold hover:bg-club-greenHover transition-all duration-300 h-12 text-lg rounded-md"
+              disabled={loginMutation.isPending}
+            >
+              {loginMutation.isPending ? "Iniciando sesión..." : "Acceder al Club"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -16,6 +16,7 @@ import ShoppingCartComponent from '@/components/cart/ShoppingCart'
 import { FeaturedProductCard } from "@/components/products/FeaturedProductCard"
 import OrderSocios from "../orders/OrderSocios"
 import { ThemeSwitch } from "../theme-switch"
+import {CardTest} from '../products/CardTest.tsx'
 
 interface Product {
   id: string
@@ -240,7 +241,7 @@ export default function Component() {
                     </Button>
                   </div>
                 ) : (
-                  <FeaturedProductCard
+                  <CardTest
                     products={featuredProducts}
                     onAddToCart={addToCart}
                     onToggleFavorite={toggleFavorite}

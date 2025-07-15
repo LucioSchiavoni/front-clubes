@@ -133,7 +133,7 @@ export function FeaturedProductCard({ products, onAddToCart, onToggleFavorite, i
             </Dialog>
           )}
         </div>
-
+        
         {/* Navigation Arrows */}
         {products.length > 1 && (
           <>

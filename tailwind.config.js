@@ -56,7 +56,12 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
+  			},
+  			'club-green': '#226644',
+  			'club-greenHover': '#2F5D50',
+  			'club-dark': '#1A1A1A',
+  			'club-gray': '#4B5563',
+  			'club-light': '#E5E7EB',
   		}
   	}
   },
