@@ -61,7 +61,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="flex items-center justify-center  text-club-green px-4">
-      <Card className="bg-white border border-club-light shadow-xl rounded-xl p-8 max-w-md w-full">
+      <Card className="bg-transparent backdrop-blur-md border border-cl  shadow-xl rounded-xl p-8 max-w-md w-full">
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -75,7 +75,7 @@ const LoginForm: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-12 bg-white border border-club-light text-club-dark placeholder:text-club-light focus:border-club-green focus:ring-club-green h-12 text-lg rounded-md"
+                  className="pl-12 bg-white border border-club-light text-club-dark placeholder:text-club-light focus:border-club-green focus:ring-club-green h-12 text-lg rounded-md bg-transparent backdrop-blur-2xl"
                   placeholder="tu@email.com"
                   required
                 />
@@ -92,7 +92,7 @@ const LoginForm: React.FC = () => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-12 pr-12 bg-white border border-club-light text-club-dark placeholder:text-club-light focus:border-club-green focus:ring-club-green h-12 text-lg rounded-md"
+                  className="pl-12 pr-12  border border-club-light text-club-dark placeholder:text-club-light focus:border-club-green focus:ring-club-green h-12 text-lg rounded-md "
                   placeholder="••••••••"
                   required
                 />

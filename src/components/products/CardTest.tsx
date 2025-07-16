@@ -106,7 +106,7 @@ export function CardTest({ products, onAddToCart, onToggleFavorite, isFavorite }
       <Card
       className="border bg-background/60 dark:bg-default-100/50 max-w-[610px]" 
     >
-      <div>
+    
         <div className="grid grid-cols-6 md:grid-cols-12 gap-6 md:gap-4 items-center justify-center">
           <div className="relative col-span-6 md:col-span-4">
             <img
@@ -114,7 +114,7 @@ export function CardTest({ products, onAddToCart, onToggleFavorite, isFavorite }
               className="object-cover rounded-md scale-105"
               height={200}
               
-              src="https://heroui.com/images/album-cover.png"
+              src={currentProduct.image || "https://via.placeholder.com/200"}
               width="100%"
             />
           </div>
@@ -124,14 +124,92 @@ export function CardTest({ products, onAddToCart, onToggleFavorite, isFavorite }
             <div className="flex justify-between  items-start">
              
               <div className="flex flex-col gap-0 mt-4">
-                <h3 className="font-semibold text-foreground/90"></h3>
+                <h3 className="font-semibold text-foreground/90">{currentProduct.thc}</h3>
                 <p className="text-small text-foreground/80">{currentProduct.category}</p>
                 <h1 className="text-large font-medium mt-2">{currentProduct.name}</h1>
               </div>
              
             </div>
 
-        
+                  {/* Right Content - Cart Controls */}
+          <div className="flex flex-col space-y-3 l m-auto">
+            {/* Quantity Control Card */}
+            <div className=" backdrop-blur-sm rounded-lg border border-gray-700/20 p-3">
+              <div className="text-white text-xl font-medium uppercase tracking-wider mb-2 text-center ">CANTIDAD</div>
+
+              {/* Quick Increment Buttons */}
+              <div className="flex  text-xl sm:grid-cols-2 gap-3 mb-2">
+                {[5, 10, 20, 40].map((value) => (
+                  <Button
+                    key={value}
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-1 text-xs text-white/80 hover:bg-white/10 border pb-1 p-3 "
+                    onClick={() => handleQuantityChange(value)}
+                    disabled={value > currentProduct.stock}
+                  >
+                   <span className="text-lg">+{value}g</span> 
+                  </Button>
+                ))}
+              </div>
+
+              {/* Manual Control */}
+              <div className="flex items-center justify-center space-x-2 mb-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-white/80 hover:bg-white/10 border border-gray-600/30 rounded"
+                  onClick={() => handleQuantityChange(quantity - 1)}
+                  disabled={quantity <= 1}
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                {isEditing ? (
+                  <Input
+                    type="number"
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    onBlur={handleInputBlur}
+                    className="h-6 w-12 text-center text-xs bg-black/30 border border-gray-600/30 text-white/90 focus-visible:ring-1 focus-visible:ring-emerald-500"
+                    min={1}
+                    max={products[currentSlide].stock}
+                    autoFocus
+                  />
+                ) : (
+                  <span
+                    className="text-white/90 font-bold min-w-[1.5rem] text-center text-sm cursor-pointer hover:text-emerald-400 transition-colors px-1 py-0.5 border border-gray-600/30 rounded bg-black/20"
+                    onClick={handleQuantityClick}
+                  >
+                    {quantity}
+                  </span>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-white/80 hover:bg-white/10 border border-gray-600/30 rounded"
+                  onClick={() => handleQuantityChange(quantity + 1)}
+                  disabled={quantity >= currentProduct.stock}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+
+              {/* Total Price */}
+              <div className="text-center mb-2 pb-2 border-b border-gray-700/20">
+                <div className="text-gray-400 text-xs">Total</div>
+                <div className="text-emerald-400 font-bold text-base">{formatPrice(currentProduct.price * quantity)}</div>
+              </div>
+
+              {/* Add to Cart Button */}
+              <Button
+                onClick={handleAddToCart}
+                className="w-full bg-white/90 hover:bg-white text-black font-semibold py-1.5 px-3 rounded-lg transition-all duration-200 border-0 shadow-lg text-xs"
+                disabled={currentProduct.stock === 0}
+              >
+                <ShoppingCart className="w-3 h-3 mr-1" />
+                {currentProduct.stock === 0 ? "AGOTADO" : `AGREGAR ${quantity}G`}
+              </Button>
+            </div>
 
           
           </div>
