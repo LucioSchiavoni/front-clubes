@@ -145,25 +145,7 @@ export default function Component() {
         <div className="absolute top-3/4 left-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border h-16">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-2xl">
-                  <span className="text-white font-bold text-xl">🌿</span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-600 rounded-2xl blur opacity-50 animate-pulse"></div>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
-                  {club?.name || "Club"}
-                </h1>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
+      <div className="absolute right-10 top-8 flex gap-5 z-0">
               <ThemeSwitch/>
 
               <ShoppingCartComponent
@@ -175,9 +157,6 @@ export default function Component() {
                 clubId={profile.data.clubId}
               />
             </div>
-          </div>
-        </div>
-      </header>
 
       <div className="container mx-auto px-6 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -209,12 +188,8 @@ export default function Component() {
               </div>
             </div>
 
-            <div className="mb-16">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
-                  ✨ Productos Destacados
-                </h2>
-              </div>
+            <div className="">
+             
 
               <div className="w-full">
                 {featuredProducts.length === 0 ? (
@@ -241,7 +216,7 @@ export default function Component() {
                     </Button>
                   </div>
                 ) : (
-                  <CardTest
+                  <FeaturedProductCard
                     products={featuredProducts}
                     onAddToCart={addToCart}
                     onToggleFavorite={toggleFavorite}

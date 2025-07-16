@@ -12,15 +12,24 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
+import { useForm } from "react-hook-form"
 
 const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
   const setToken = useAuthStore((state) => state.setToken)
   const setProfile = useAuthStore((state) => state.setProfile)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError: setFormError,
+    clearErrors,
+  } = useForm<{ email: string; password: string }>({
+    
+  })
 
   const loginMutation = useMutation<any, any, { email: string; password: string }>({
     mutationFn: loginRequest,
@@ -53,17 +62,16 @@ const LoginForm: React.FC = () => {
     },
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = (data: { email: string; password: string }) => {
     setError(null)
-    loginMutation.mutate({ email, password })
+    loginMutation.mutate(data)
   }
 
   return (
     <div className="flex items-center justify-center  text-club-green px-4">
       <Card className="bg-transparent backdrop-blur-md border border-cl  shadow-xl rounded-xl p-8 max-w-md w-full">
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-club-green text-start flex font-medium">
                 Email
@@ -73,13 +81,22 @@ const LoginForm: React.FC = () => {
                 <Input
                   id="email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-12 bg-white border border-club-light text-club-dark placeholder:text-club-light focus:border-club-green focus:ring-club-green h-12 text-lg rounded-md bg-transparent backdrop-blur-2xl"
-                  placeholder="tu@email.com"
-                  required
+                  {...register("email", {
+                    required: "El email es obligatorio",
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: "Email inválido",
+                    },
+                  })}
+                  className="pl-12 bg-white border border-club-light text-club-light placeholder:text-gray-500 focus:border-club-green focus:ring-club-green h-12 text-lg rounded-md bg-transparent backdrop-blur-2xl"
+                  placeholder="ejemplo@email.com"
                 />
               </div>
+              {errors.email && (
+                <Alert className="bg-club-greenHover/10 border border-club-green text-club-greenHover mt-1">
+                  <AlertDescription>{errors.email.message}</AlertDescription>
+                </Alert>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-club-green text-start flex font-medium">
@@ -90,11 +107,14 @@ const LoginForm: React.FC = () => {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-12 pr-12  border border-club-light text-club-dark placeholder:text-club-light focus:border-club-green focus:ring-club-green h-12 text-lg rounded-md "
-                  placeholder="••••••••"
-                  required
+                  {...register("password", {
+                    required: "La contraseña es obligatoria",
+                    minLength: {
+                      value: 6,
+                      message: "La contraseña debe tener al menos 6 caracteres",
+                    },
+                  })}
+                  className="pl-12 pr-12   border text-club-light border-club-light dark:text-club-dark placeholder:text-gray-400 focus:border-club-green focus:ring-club-green h-12 text-lg rounded-md "
                 />
                 <button
                   type="button"
@@ -104,10 +124,15 @@ const LoginForm: React.FC = () => {
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
+              {errors.password && (
+                <Alert className="bg-club-greenHover/10 border border-club-green text-club-greenHover mt-1">
+                  <AlertDescription>{errors.password.message}</AlertDescription>
+                </Alert>
+              )}
             </div>
 
             {error && (
-              <Alert className="bg-club-greenHover/10 border border-club-green text-club-greenHover">
+              <Alert className="bg-transparent border text-white border-yellow-600 ">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}

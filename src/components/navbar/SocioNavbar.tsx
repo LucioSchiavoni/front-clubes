@@ -107,11 +107,11 @@ export default function ClubNavbar() {
       <Button
         variant="outline"
         size="icon"
-        className="fixed top-20 left-4 z-[50] lg:hidden bg-background/95 backdrop-blur-md border-border/50 shadow-lg"
+        className="fixed top-8 left-6 z-[50] lg:hidden bg-background/95 backdrop-blur-md border-border/50 shadow-lg"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         data-sidebar="mobile-trigger"
       >
-        {isMobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        {isMobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" /> }
       </Button>
 
       {/* Desktop Overlay - appears when sidebar is expanded */}

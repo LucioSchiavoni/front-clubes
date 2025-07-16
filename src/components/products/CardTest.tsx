@@ -1,14 +1,10 @@
-import { ShoppingCart, Minus, Plus, ChevronLeft, ChevronRight, Maximize2, HeartIcon } from "lucide-react"
+"use client"
+
+import React from "react"
+import { ShoppingCart, Minus, Plus, Heart, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { useState } from "react"
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Card } from "../ui/card"
 
 interface Product {
   id: string
@@ -38,10 +34,10 @@ interface ProductCardProps {
 }
 
 export function CardTest({ products, onAddToCart, onToggleFavorite, isFavorite }: ProductCardProps) {
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const [quantity, setQuantity] = useState(1)
-  const [isEditing, setIsEditing] = useState(false)
-  const [inputValue, setInputValue] = useState("")
+  const [currentSlide, setCurrentSlide] = React.useState(0)
+  const [quantity, setQuantity] = React.useState(1)
+  const [isEditing, setIsEditing] = React.useState(false)
+  const [inputValue, setInputValue] = React.useState("")
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % products.length)
@@ -63,7 +59,6 @@ export function CardTest({ products, onAddToCart, onToggleFavorite, isFavorite }
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setInputValue(value)
-
     const numValue = Number.parseInt(value)
     if (!isNaN(numValue) && numValue >= 1 && numValue <= products[currentSlide].stock) {
       setQuantity(numValue)
@@ -86,157 +81,208 @@ export function CardTest({ products, onAddToCart, onToggleFavorite, isFavorite }
     setQuantity(1)
   }
 
-  const formatPrice = (price: number) => {
-    return `$${price.toFixed(2)}`
-  }
-
-  const formatStock = (stock: number) => {
-    if (stock >= 1000) {
-      return `${(stock / 1000).toFixed(1)}K`
-    }
-    return stock.toString()
-  }
+  const formatPrice = (price: number) => `$${price.toFixed(2)}`
+  const formatStock = (stock: number) => (stock >= 1000 ? `${(stock / 1000).toFixed(1)}K` : stock.toString())
 
   if (!products.length) return null
 
   const currentProduct = products[currentSlide]
 
   return (
-   <div>
-      <Card
-      className="border bg-background/60 dark:bg-default-100/50 max-w-[610px]" 
-    >
-    
-        <div className="grid grid-cols-6 md:grid-cols-12 gap-6 md:gap-4 items-center justify-center">
-          <div className="relative col-span-6 md:col-span-4">
-            <img
-              alt="Album cover"
-              className="object-cover rounded-md scale-105"
-              height={200}
-              
-              src={currentProduct.image || "https://via.placeholder.com/200"}
-              width="100%"
-            />
+    <div className="flex justify-center items-center w-full p-4">
+      <div className="bg-white dark:bg-gray-900 max-w-[650px] w-full rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden transition-colors duration-300">
+        <div className="p-6">
+          {/* Header con badges y favorito */}
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex gap-2">
+              <Badge
+                variant="secondary"
+                className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 font-medium border border-emerald-200 dark:border-emerald-800"
+              >
+                {currentProduct.category}
+              </Badge>
+              <Badge
+                variant={
+                  currentProduct.stock > 50 ? "default" : currentProduct.stock > 10 ? "secondary" : "destructive"
+                }
+                className={`font-medium border ${
+                  currentProduct.stock > 50
+                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-200 dark:border-green-800"
+                    : currentProduct.stock > 10
+                      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800"
+                      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 border-red-200 dark:border-red-800"
+                }`}
+              >
+                Stock: {formatStock(currentProduct.stock)}g
+              </Badge>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+             onClick={() => onToggleFavorite(currentProduct.id)} 
+            >
+              <Heart
+                fill={isFavorite ? "currentColor" : "none"}
+                color={isFavorite ? "#ef4444" : "currentColor"}
+                strokeWidth={1.5}
+                width={24}
+                height={24}
+                className="transition-colors duration-200"
+              />
+            </Button>
           </div>
 
-          <div className="flex flex-col gap-2">
-          <h2 className="font-semibold text-large capitalize">Titulo</h2>
-            <div className="flex justify-between  items-start">
-             
-              <div className="flex flex-col gap-0 mt-4">
-                <h3 className="font-semibold text-foreground/90">{currentProduct.thc}</h3>
-                <p className="text-small text-foreground/80">{currentProduct.category}</p>
-                <h1 className="text-large font-medium mt-2">{currentProduct.name}</h1>
+          {/* Contenido principal */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            {/* Imagen */}
+            <div className="md:col-span-2">
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                <img
+                  alt={currentProduct.name}
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                  src={currentProduct.image || "/placeholder.svg?height=300&width=300"}
+                />
+                {currentProduct.stock === 0 && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <Badge variant="destructive" className="text-lg font-bold dark:bg-red-900/80 dark:text-red-200">
+                      AGOTADO
+                    </Badge>
+                  </div>
+                )}
               </div>
-             
             </div>
 
-                  {/* Right Content - Cart Controls */}
-          <div className="flex flex-col space-y-3 l m-auto">
-            {/* Quantity Control Card */}
-            <div className=" backdrop-blur-sm rounded-lg border border-gray-700/20 p-3">
-              <div className="text-white text-xl font-medium uppercase tracking-wider mb-2 text-center ">CANTIDAD</div>
+            {/* Información del producto */}
+            <div className="md:col-span-3 flex flex-col justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{currentProduct.name}</h1>
+                <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 leading-relaxed">
+                  {currentProduct.description}
+                </p>
 
-              {/* Quick Increment Buttons */}
-              <div className="flex  text-xl sm:grid-cols-2 gap-3 mb-2">
-                {[5, 10, 20, 40].map((value) => (
+                {/* Precio destacado */}
+                <div className="mb-6">
+                  <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                    {formatPrice(currentProduct.price)}
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400 ml-1">/g</span>
+                </div>
+              </div>
+
+              {/* Controles de cantidad */}
+              <div className="space-y-4">
+                {/* Botones rápidos */}
+                <div className="grid grid-cols-4 gap-2">
+                  {[5, 10, 20, 40].map((value) => (
+                    <Button
+                      key={value}
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs font-medium border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 dark:border-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-900/20 bg-transparent transition-colors"
+                      onClick={() => handleQuantityChange(value)}
+                      disabled={value > currentProduct.stock}
+                    >
+                      +{value}g
+                    </Button>
+                  ))}
+                </div>
+
+                {/* Selector de cantidad */}
+                <div className="flex items-center justify-center gap-3 bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
                   <Button
-                    key={value}
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-1 text-xs text-white/80 hover:bg-white/10 border pb-1 p-3 "
-                    onClick={() => handleQuantityChange(value)}
-                    disabled={value > currentProduct.stock}
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-lg border-gray-300 dark:border-gray-600 bg-transparent"
+                    onClick={() => handleQuantityChange(quantity - 1)}
+                    disabled={quantity <= 1}
                   >
-                   <span className="text-lg">+{value}g</span> 
+                    <Minus className="h-4 w-4" />
                   </Button>
+                  {isEditing ? (
+                    <Input
+                      type="number"
+                      value={inputValue}
+                      onChange={handleInputChange}
+                      onBlur={handleInputBlur}
+                      className="h-8 w-16 text-center text-base border-gray-300 dark:border-gray-600 focus-visible:ring-emerald-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                      min={1}
+                      max={currentProduct.stock}
+                      autoFocus
+                    />
+                  ) : (
+                    <span
+                      className="text-lg font-bold min-w-[3rem] text-center cursor-pointer hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors px-3 py-1 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                      onClick={handleQuantityClick}
+                    >
+                      {quantity}g
+                    </span>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-lg border-gray-300 dark:border-gray-600 bg-transparent"
+                    onClick={() => handleQuantityChange(quantity + 1)}
+                    disabled={quantity >= currentProduct.stock}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Botón agregar al carrito */}
+                <Button
+                  onClick={handleAddToCart}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-base disabled:bg-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-700"
+                  disabled={currentProduct.stock === 0}
+                >
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  {currentProduct.stock === 0 ? "PRODUCTO AGOTADO" : `AGREGAR ${quantity}G AL CARRITO`}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Navegación de slides */}
+          {products.length > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full border-gray-300 dark:border-gray-600 hover:bg-emerald-50 hover:border-emerald-300 dark:hover:bg-emerald-900/20 bg-transparent"
+                onClick={prevSlide}
+              >
+                <ChevronLeft width={20} height={20} />
+              </Button>
+
+              <div className="flex gap-2">
+                {products.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`h-2 w-8 rounded-full transition-all duration-300 ${
+                      index === currentSlide
+                        ? "bg-emerald-600 shadow-lg dark:bg-emerald-400"
+                        : "bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500"
+                    }`}
+                    onClick={() => {
+                      setCurrentSlide(index)
+                      setQuantity(1)
+                    }}
+                  />
                 ))}
               </div>
 
-              {/* Manual Control */}
-              <div className="flex items-center justify-center space-x-2 mb-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-white/80 hover:bg-white/10 border border-gray-600/30 rounded"
-                  onClick={() => handleQuantityChange(quantity - 1)}
-                  disabled={quantity <= 1}
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
-                {isEditing ? (
-                  <Input
-                    type="number"
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onBlur={handleInputBlur}
-                    className="h-6 w-12 text-center text-xs bg-black/30 border border-gray-600/30 text-white/90 focus-visible:ring-1 focus-visible:ring-emerald-500"
-                    min={1}
-                    max={products[currentSlide].stock}
-                    autoFocus
-                  />
-                ) : (
-                  <span
-                    className="text-white/90 font-bold min-w-[1.5rem] text-center text-sm cursor-pointer hover:text-emerald-400 transition-colors px-1 py-0.5 border border-gray-600/30 rounded bg-black/20"
-                    onClick={handleQuantityClick}
-                  >
-                    {quantity}
-                  </span>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-white/80 hover:bg-white/10 border border-gray-600/30 rounded"
-                  onClick={() => handleQuantityChange(quantity + 1)}
-                  disabled={quantity >= currentProduct.stock}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-
-              {/* Total Price */}
-              <div className="text-center mb-2 pb-2 border-b border-gray-700/20">
-                <div className="text-gray-400 text-xs">Total</div>
-                <div className="text-emerald-400 font-bold text-base">{formatPrice(currentProduct.price * quantity)}</div>
-              </div>
-
-              {/* Add to Cart Button */}
               <Button
-                onClick={handleAddToCart}
-                className="w-full bg-white/90 hover:bg-white text-black font-semibold py-1.5 px-3 rounded-lg transition-all duration-200 border-0 shadow-lg text-xs"
-                disabled={currentProduct.stock === 0}
+                variant="outline"
+                size="icon"
+                className="rounded-full border-gray-300 dark:border-gray-600 hover:bg-emerald-50 hover:border-emerald-300 dark:hover:bg-emerald-900/20 bg-transparent"
+                onClick={nextSlide}
               >
-                <ShoppingCart className="w-3 h-3 mr-1" />
-                {currentProduct.stock === 0 ? "AGOTADO" : `AGREGAR ${quantity}G`}
+                <ChevronRight width={20} height={20} />
               </Button>
             </div>
-
-          
-          </div>
+          )}
         </div>
       </div>
-    </Card>
- 
-
-
-
-
-      {/* Carousel Indicators */}
-      {products.length > 1 && (
-        <div className="flex justify-center items-center gap-3 mt-4">
-          {products.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`h-3 sm:h-4 rounded-full transition-all ${
-                index === currentSlide ? "bg-white w-12 sm:w-16" : "bg-white/40 hover:bg-white/60 w-3 sm:w-4"
-              }`}
-            />
-          ))}
-        </div>
-      )}
-      
-      
-   </div>
+    </div>
   )
-} 
+}
