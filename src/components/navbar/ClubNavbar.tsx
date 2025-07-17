@@ -1,18 +1,13 @@
 import * as React from "react"
 import {
-  Search,
-  TrendingUp,
-  BarChart3,
-  Heart,
   User,
   Settings,
-  Wallet,
   Grid3X3,
   Menu,
   X,
   LogOut,
   Loader2,
-  Clock,
+  Clock
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -21,6 +16,7 @@ import { ThemeSwitch } from "../theme-switch"
 import { useAuthStore } from "@/store/auth"
 import { useNavigate } from "react-router-dom"
 import { useClub } from "@/hooks/useClub"
+
 
 export default function ClubNavbar() {
   const [isExpanded, setIsExpanded] = React.useState(false)
@@ -48,6 +44,8 @@ export default function ClubNavbar() {
       href: "/profile",
     },
   ]
+
+
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -210,6 +208,10 @@ export default function ClubNavbar() {
 
         {/* Footer */}
         <div className="border-t border-border/50 bg-background/30 p-2">
+
+     
+
+
           <div className="space-y-1">
             <Button
               variant="ghost"

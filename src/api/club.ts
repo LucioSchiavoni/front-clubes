@@ -28,6 +28,20 @@ export const updateUserClub = async(userId: number, clubId: number) => {
     }
 }
 
+export const createGramsClub = async (clubId: string, data: { minGrams?: number; maxGrams?: number }) => {
+    try {
+        const res = await instance.patch(
+            `/club/${clubId}/grams`,
+            data,
+            { headers: { 'Content-Type': 'application/json' } }
+        )
+        return res.data;
+    } catch (error) {
+        console.log(error)
+        throw error
+    }
+}
+
 export const getClubById = async(clubId: string) => {
     try {
         const res = await instance.get(`/club/${clubId}`)

@@ -1,26 +1,154 @@
+"use client"
+
+import type React from "react"
+
 import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { UpdateClub } from "@/interface/update-club"
+import { Card, CardContent } from "@/components/ui/card"
+import type { UpdateClub } from "@/interface/update-club"
 import { updateClub, getClubById } from "@/api/club"
 import { useToast } from "@/hooks/use-toast"
-import { CheckCircle2, Database, Loader2, Image as ImageIcon, Upload, AlertCircle, X } from "lucide-react"
+import {
+  CheckCircle2,
+  Loader2,
+  Upload,
+  AlertCircle,
+  X,
+  Edit3,
+  Save,
+  XCircle,
+  MapPin,
+  Phone,
+  Globe,
+  FileText,
+  Building,
+  ImageIcon,
+  Scale,
+} from "lucide-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useClub } from "@/hooks/useClub"
+import { GramsConfig } from "../club/GramsConfig"
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
 
 interface UpdateClubFormProps {
-  clubId: string;
-  initialData: UpdateClub;
-  onSuccess?: () => void;
+  clubId: string
+  initialData: UpdateClub
+  onSuccess?: () => void
+}
+
+type EditingField = "name" | "description" | "address" | "phone" | "website" | "image" | null
+
+// Variantes de animación
+const fieldVariants = {
+  reading: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: "easeInOut",
+    },
+  },
+  editing: {
+    opacity: 0,
+    y: -10,
+    scale: 0.98,
+    transition: {
+      duration: 0.2,
+      ease: "easeInOut",
+    },
+  },
+}
+
+const editFormVariants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+    scale: 0.95,
+    transition: {
+      duration: 0.2,
+      ease: "easeInOut",
+    },
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut",
+      delay: 0.1,
+    },
+  },
+}
+
+const buttonContainerVariants = {
+  hidden: {
+    opacity: 0,
+    y: 10,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      delay: 0.2,
+      staggerChildren: 0.1,
+    },
+  },
+}
+
+const buttonVariants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.8,
+    y: 10,
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut",
+    },
+  },
+}
+
+const savedIndicatorVariants = {
+  hidden: {
+    opacity: 0,
+    x: -20,
+    scale: 0.8,
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: {
+      duration: 0.4,
+      ease: "easeOut",
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: 20,
+    scale: 0.8,
+    transition: {
+      duration: 0.3,
+    },
+  },
 }
 
 export const UpdateClubForm = ({ clubId, initialData, onSuccess }: UpdateClubFormProps) => {
   const [formData, setFormData] = useState<UpdateClub>(initialData)
-  const [isSuccess, setIsSuccess] = useState(false)
+  const [editingField, setEditingField] = useState<EditingField>(null)
+  const [savedFields, setSavedFields] = useState<Set<string>>(new Set())
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [imageError, setImageError] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -32,46 +160,98 @@ export const UpdateClubForm = ({ clubId, initialData, onSuccess }: UpdateClubFor
     mutationFn: async (data: FormData | UpdateClub) => {
       return await updateClub(clubId, data)
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       setFormData(data.data)
       setPreviewImage(null)
       setSelectedFile(null)
-      setIsSuccess(true)
+      setEditingField(null)
+
+      // Marcar el campo como guardado
+      if (editingField) {
+        setSavedFields((prev) => new Set([...prev, editingField]))
+        // Remover la marca después de 3 segundos
+        setTimeout(() => {
+          setSavedFields((prev) => {
+            const newSet = new Set(prev)
+            newSet.delete(editingField!)
+            return newSet
+          })
+        }, 3000)
+      }
+
       toast({
-        title: "Club actualizado exitosamente",
-        description: "Los cambios se han guardado correctamente",
+        title: "✅ Campo actualizado",
+        description: `${getFieldLabel(editingField)} se ha guardado correctamente`,
         variant: "default",
       })
-      // Invalidar las queries relacionadas con el club
-      queryClient.invalidateQueries({ queryKey: ['club'] })
-      queryClient.invalidateQueries({ queryKey: ['club', clubId] })
+
+      queryClient.invalidateQueries({ queryKey: ["club"] })
+      queryClient.invalidateQueries({ queryKey: ["club", clubId] })
       onSuccess?.()
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "No se pudieron guardar los cambios",
+        title: "❌ Error",
+        description: "No se pudo guardar el cambio",
         variant: "destructive",
       })
-    }
+    },
   })
 
-  // Usar useQuery para obtener los datos actualizados del club
   const { data: updatedClub } = useQuery({
-    queryKey: ['club', clubId],
+    queryKey: ["club", clubId],
     queryFn: () => getClubById(clubId),
     enabled: !!clubId,
   })
 
+  const getFieldLabel = (field: EditingField) => {
+    const labels = {
+      name: "Nombre del club",
+      description: "Descripción",
+      address: "Dirección",
+      phone: "Teléfono",
+      website: "Sitio web",
+      image: "Imagen",
+    }
+    return field ? labels[field] : ""
+  }
+
+  const getFieldIcon = (field: string) => {
+    const icons = {
+      name: Building,
+      description: FileText,
+      address: MapPin,
+      phone: Phone,
+      website: Globe,
+      image: ImageIcon,
+    }
+    const IconComponent = icons[field as keyof typeof icons]
+    return IconComponent ? <IconComponent className="h-4 w-4" /> : null
+  }
+
+  const handleEdit = (field: EditingField) => {
+    setEditingField(field)
+    setSavedFields((prev) => {
+      const newSet = new Set(prev)
+      newSet.delete(field!)
+      return newSet
+    })
+  }
+
+  const handleCancel = () => {
+    setEditingField(null)
+    setFormData(initialData)
+    setPreviewImage(null)
+    setSelectedFile(null)
+    setImageError(null)
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }))
-    if (isSuccess) {
-      setIsSuccess(false)
-    }
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,40 +259,25 @@ export const UpdateClubForm = ({ clubId, initialData, onSuccess }: UpdateClubFor
     setImageError(null)
 
     if (file) {
-      // Validar tamaño del archivo
       if (file.size > MAX_FILE_SIZE) {
         setImageError("La imagen no debe superar los 2MB")
-        e.target.value = "" // Limpiar el input
+        e.target.value = ""
         return
       }
 
-      // Validar tipo de archivo
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         setImageError("El archivo debe ser una imagen")
-        e.target.value = "" // Limpiar el input
+        e.target.value = ""
         return
       }
 
-      // Guardar el archivo
       setSelectedFile(file)
-
-      // Crear una URL temporal para la vista previa
       const imageUrl = URL.createObjectURL(file)
       setPreviewImage(imageUrl)
     }
   }
 
-  const handleRemoveImage = () => {
-    setPreviewImage(null)
-    setSelectedFile(null)
-    const fileInput = document.getElementById('image') as HTMLInputElement
-    if (fileInput) {
-      fileInput.value = ""
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSave = async (field: EditingField) => {
     if (imageError) {
       toast({
         title: "Error",
@@ -122,244 +287,427 @@ export const UpdateClubForm = ({ clubId, initialData, onSuccess }: UpdateClubFor
       return
     }
 
-    // Si hay una imagen seleccionada, enviar como FormData
-    if (selectedFile) {
+    if (field === "image" && selectedFile) {
       const formDataToSend = new FormData()
-      
-      // Agregar todos los campos del formulario
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && key !== 'image') {
+        if (value !== undefined && value !== null && key !== "image") {
           formDataToSend.append(key, value.toString())
         }
       })
-
-      // Agregar la imagen
-      formDataToSend.append('image', selectedFile)
-
-      console.log('Enviando FormData con imagen:', {
-        name: formDataToSend.get('name'),
-        description: formDataToSend.get('description'),
-        image: selectedFile.name
-      })
-
+      formDataToSend.append("image", selectedFile)
       updateClubMutation.mutate(formDataToSend)
     } else {
-      // Si no hay imagen, enviar como JSON
       const jsonData = { ...formData }
-      delete jsonData.image // Eliminar la imagen del objeto JSON
+      delete jsonData.image
       updateClubMutation.mutate(jsonData)
     }
   }
 
   if (isLoadingClub) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <span className="ml-2">Cargando datos del club...</span>
-      </div>
+      </motion.div>
+    )
+  }
+
+  const renderField = (
+    fieldName: keyof UpdateClub,
+    currentValue: string | undefined,
+    placeholder: string,
+    type: "input" | "textarea" = "input",
+  ) => {
+    const isEditing = editingField === fieldName
+    const isSaved = savedFields.has(fieldName)
+    const isLoading = updateClubMutation.isPending && editingField === fieldName
+
+    return (
+      <motion.div layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        <Card className={`transition-all duration-300 ${isSaved ? "ring-2 ring-green-500 bg-green-50/50" : ""}`}>
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1">
+                <Label className="flex items-center gap-2 text-sm font-medium mb-3">
+                  {getFieldIcon(fieldName)}
+                  {getFieldLabel(fieldName)}
+                  <AnimatePresence>
+                    {isSaved && (
+                      <motion.div
+                        variants={savedIndicatorVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        className="flex items-center gap-1 text-green-600 text-xs"
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                        <span>Guardado</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Label>
+
+                <div className="relative min-h-[40px]">
+                  <AnimatePresence mode="wait">
+                    {!isEditing ? (
+                      <motion.div
+                        key="reading"
+                        variants={fieldVariants}
+                        initial="reading"
+                        animate="reading"
+                        exit="editing"
+                        className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-md min-h-[40px] flex items-center hover:bg-muted/50 transition-colors cursor-pointer"
+                        onClick={() => handleEdit(fieldName)}
+                      >
+                        {currentValue || `Sin ${getFieldLabel(fieldName).toLowerCase()}`}
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="editing"
+                        variants={editFormVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        className="space-y-3"
+                      >
+                        {type === "textarea" ? (
+                          <Textarea
+                            name={fieldName}
+                            value={formData[fieldName] || ""}
+                            onChange={handleChange}
+                            placeholder={placeholder}
+                            className="bg-background focus:ring-2 focus:ring-primary/20"
+                            rows={3}
+                            autoFocus
+                          />
+                        ) : (
+                          <Input
+                            name={fieldName}
+                            value={formData[fieldName] || ""}
+                            onChange={handleChange}
+                            placeholder={placeholder}
+                            className="bg-background focus:ring-2 focus:ring-primary/20"
+                            autoFocus
+                          />
+                        )}
+
+                        <motion.div
+                          variants={buttonContainerVariants}
+                          initial="hidden"
+                          animate="visible"
+                          className="flex gap-2"
+                        >
+                          <motion.div variants={buttonVariants}>
+                            <Button
+                              size="sm"
+                              onClick={() => handleSave(fieldName)}
+                              disabled={isLoading}
+                              className="flex items-center gap-1"
+                            >
+                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center gap-1">
+                                {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                                Guardar
+                              </motion.div>
+                            </Button>
+                          </motion.div>
+                          <motion.div variants={buttonVariants}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={handleCancel}
+                              disabled={isLoading}
+                              className="flex items-center gap-1 bg-transparent"
+                            >
+                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center gap-1">
+                                <XCircle className="h-3 w-3" />
+                                Cancelar
+                              </motion.div>
+                            </Button>
+                          </motion.div>
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              <AnimatePresence>
+                {!isEditing && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEdit(fieldName)}
+                      className="flex items-center gap-1 text-muted-foreground hover:text-foreground hover:bg-primary/10"
+                    >
+                      <motion.div whileHover={{ scale: 1.1, rotate: 12, transition: { duration: 0.2 } }} whileTap={{ scale: 0.9 }} className="flex items-center gap-1">
+                        <Edit3 className="h-3 w-3" />
+                      </motion.div>
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    )
+  }
+
+  const renderImageField = () => {
+    const isEditing = editingField === "image"
+    const isSaved = savedFields.has("image")
+    const isLoading = updateClubMutation.isPending && editingField === "image"
+
+    return (
+      <motion.div layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        <Card className={`transition-all duration-300 ${isSaved ? "ring-2 ring-green-500 bg-green-50/50" : ""}`}>
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1">
+                <Label className="flex items-center gap-2 text-sm font-medium mb-3">
+                  <ImageIcon className="h-4 w-4" />
+                  Imagen del club
+                  <AnimatePresence>
+                    {isSaved && (
+                      <motion.div
+                        variants={savedIndicatorVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        className="flex items-center gap-1 text-green-600 text-xs"
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                        <span>Guardado</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Label>
+
+                <div className="relative min-h-[128px]">
+                  <AnimatePresence mode="wait">
+                    {!isEditing ? (
+                      <motion.div
+                        key="image-reading"
+                        variants={fieldVariants}
+                        initial="reading"
+                        animate="reading"
+                        exit="editing"
+                        className="space-y-2 cursor-pointer"
+                        onClick={() => handleEdit("image")}
+                      >
+                        {updatedClub?.data?.image ? (
+                          <motion.div
+                            className="relative w-32 h-32 rounded-lg overflow-hidden border"
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <img
+                              src={updatedClub.data.image || "/placeholder.svg"}
+                              alt="Imagen del club"
+                              className="w-full h-full object-cover"
+                            />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            className="w-32 h-32 rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center bg-muted/30 hover:bg-muted/50 transition-colors"
+                            whileHover={{ scale: 1.02 }}
+                          >
+                            <div className="text-center text-muted-foreground">
+                              <ImageIcon className="h-8 w-8 mx-auto mb-2" />
+                              <span className="text-xs">Sin imagen</span>
+                            </div>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="image-editing"
+                        variants={editFormVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        className="space-y-3"
+                      >
+                        <div className="flex flex-col gap-3">
+                          <Input
+                            id="image-upload"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                            disabled={isLoading}
+                          />
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <Label
+                              htmlFor="image-upload"
+                              className="flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer hover:bg-accent w-fit"
+                            >
+                              <Upload className="h-4 w-4" />
+                              Seleccionar imagen
+                            </Label>
+                          </motion.div>
+
+                          <AnimatePresence>
+                            {imageError && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="flex items-center gap-2 text-sm text-red-500"
+                              >
+                                <AlertCircle className="h-4 w-4" />
+                                <span>{imageError}</span>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+
+                          <AnimatePresence>
+                            {previewImage && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                className="relative w-32 h-32 rounded-lg overflow-hidden border"
+                              >
+                                <img
+                                  src={previewImage || "/placeholder.svg"}
+                                  alt="Vista previa"
+                                  className="w-full h-full object-cover"
+                                />
+                                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="destructive"
+                                    className="absolute top-1 right-1 h-6 w-6 p-0"
+                                    onClick={() => {
+                                      setPreviewImage(null)
+                                      setSelectedFile(null)
+                                      const input = document.getElementById("image-upload") as HTMLInputElement
+                                      if (input) input.value = ""
+                                    }}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </motion.div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        <motion.div
+                          variants={buttonContainerVariants}
+                          initial="hidden"
+                          animate="visible"
+                          className="flex gap-2"
+                        >
+                          <motion.div variants={buttonVariants}>
+                            <Button
+                              size="sm"
+                              onClick={() => handleSave("image")}
+                              disabled={isLoading || !selectedFile || !!imageError}
+                              className="flex items-center gap-1"
+                            >
+                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center gap-1">
+                                {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                                Guardar
+                              </motion.div>
+                            </Button>
+                          </motion.div>
+                          <motion.div variants={buttonVariants}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={handleCancel}
+                              disabled={isLoading}
+                              className="flex items-center gap-1 bg-transparent"
+                            >
+                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center gap-1">
+                                <XCircle className="h-3 w-3" />
+                                Cancelar
+                              </motion.div>
+                            </Button>
+                          </motion.div>
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              <AnimatePresence>
+                {!isEditing && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEdit("image")}
+                      className="flex items-center gap-1 text-muted-foreground hover:text-foreground hover:bg-primary/10"
+                    >
+                      <motion.div whileHover={{ scale: 1.1, rotate: 12, transition: { duration: 0.2 } }} whileTap={{ scale: 0.9 }} className="flex items-center gap-1">
+                        <Edit3 className="h-3 w-3" />
+                      </motion.div>
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="name" className="flex items-center gap-2">
-            Nombre del Club
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Database className="h-3 w-3" />
-              <span>{club?.name}</span>
-            </div>
-          </Label>
-          <Input
-            id="name"
-            name="name"
-            value={formData.name || ""}
-            onChange={handleChange}
-            placeholder="Escribe el nuevo nombre del club"
-            className={`${isSuccess ? "border-green-500" : ""} bg-background`}
-          />
-        </div>
+    <motion.div
+      className="space-y-4 max-w-2xl mx-auto"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div
+        className="text-center mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <h2 className="text-2xl font-bold">Editar información del club</h2>
+      </motion.div>
 
-        <div>
-          <Label htmlFor="description" className="flex items-center gap-2">
-            Descripción
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Database className="h-3 w-3" />
-              <span>{club?.description || "Sin descripción"}</span>
-            </div>
-          </Label>
-          <Textarea
-            id="description"
-            name="description"
-            value={formData.description || ""}
-            onChange={handleChange}
-            placeholder="Escribe la nueva descripción del club"
-            className={`${isSuccess ? "border-green-500" : ""} bg-background`}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="image" className="flex items-center gap-2">
-            Imagen del Club
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Database className="h-3 w-3" />
-              <span>Imagen actual:</span>
-            </div>
-          </Label>
-          {updatedClub?.data?.image && (
-            <div className="mb-2 relative w-32 h-32 rounded-lg overflow-hidden border">
-              <img
-                src={updatedClub.data.image}
-                alt="Imagen actual del club"
-                className="w-full h-full object-cover"
-              />
-              {updateClubMutation.isPending && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-white" />
-                </div>
-              )}
-            </div>
-          )}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <Input
-                id="image"
-                name="image"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-                disabled={updateClubMutation.isPending}
-              />
-              <Label
-                htmlFor="image"
-                className={`flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer hover:bg-accent ${
-                  updateClubMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+      <motion.div className="flex flex-col gap-2">
+        <p className="text-muted-foreground text-center text-gray-300">Establecer cantidad de gramos para reserva</p>
+      <GramsConfig
+             trigger={
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center w-full gap-2 hover:bg-primary/10 transition-colors bg-transparent"
               >
-                <Upload className="h-4 w-4" />
-                <span>
-                  {updateClubMutation.isPending 
-                    ? "Actualizando imagen..." 
-                    : "Seleccionar nueva imagen"}
-                </span>
-              </Label>
-              {previewImage && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleRemoveImage}
-                  className="text-red-500 hover:text-red-600"
-                  disabled={updateClubMutation.isPending}
-                >
-                  <X className="h-4 w-4" />
-                  <span className="ml-1">Eliminar</span>
-                </Button>
-              )}
-            </div>
-            {imageError && (
-              <div className="flex items-center gap-2 text-sm text-red-500">
-                <AlertCircle className="h-4 w-4" />
-                <span>{imageError}</span>
-              </div>
-            )}
-            {previewImage && (
-              <div className="mt-2 relative w-32 h-32 rounded-lg overflow-hidden border">
-                <img
-                  src={previewImage}
-                  alt="Vista previa de la nueva imagen"
-                  className="w-full h-full object-cover"
-                />
-                {updateClubMutation.isPending && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-white" />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="address" className="flex items-center gap-2">
-            Dirección
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Database className="h-3 w-3" />
-              <span>{club?.address || "Sin dirección"}</span>
-            </div>
-          </Label>
-          <Input
-            id="address"
-            name="address"
-            value={formData.address || ""}
-            onChange={handleChange}
-            placeholder="Escribe la nueva dirección del club"
-            className={`${isSuccess ? "border-green-500" : ""} bg-background`}
+                
+                <Scale className="h-4 w-4" />
+                <span className="">Configurar Límites</span>
+              </Button>
+            }
           />
-        </div>
+      </motion.div>
 
-        <div>
-          <Label htmlFor="phone" className="flex items-center gap-2">
-            Teléfono
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Database className="h-3 w-3" />
-              <span>{club?.phone || "Sin teléfono"}</span>
-            </div>
-          </Label>
-          <Input
-            id="phone"
-            name="phone"
-            value={formData.phone || ""}
-            onChange={handleChange}
-            placeholder="Escribe el nuevo teléfono del club"
-            className={`${isSuccess ? "border-green-500" : ""} bg-background`}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="website" className="flex items-center gap-2">
-            Sitio web
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Database className="h-3 w-3" />
-              <span>{club?.website || "Sin sitio web"}</span>
-            </div>
-          </Label>
-          <Input
-            id="website"
-            name="website"
-            value={formData.website || ""}
-            onChange={handleChange}
-            placeholder="Escribe la nueva URL del sitio web"
-            className={`${isSuccess ? "border-green-500" : ""} bg-background`}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col space-y-4">
-        <Button 
-          type="submit" 
-          className="w-full" 
-          disabled={updateClubMutation.isPending || !!imageError}
-        >
-          {updateClubMutation.isPending ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Guardando cambios...</span>
-            </div>
-          ) : (
-            "Guardar cambios"
-          )}
-        </Button>
-        
-        {isSuccess && (
-          <div className="text-sm text-green-500 flex items-center justify-center space-x-2">
-            <CheckCircle2 className="h-4 w-4" />
-            <span>Los cambios se han guardado correctamente</span>
-          </div>
-        )}
-      </div>
-    </form>
+      {renderField("name", club?.name, "Escribe el nombre del club")}
+      {renderField("description", club?.description, "Escribe la descripción del club", "textarea")}
+      {renderImageField()}
+      {renderField("address", club?.address, "Escribe la dirección del club")}
+      {renderField("phone", club?.phone, "Escribe el teléfono del club")}
+      {renderField("website", club?.website, "Escribe la URL del sitio web")}
+    </motion.div>
   )
-} 
+}
