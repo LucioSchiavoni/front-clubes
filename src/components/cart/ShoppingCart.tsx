@@ -67,7 +67,6 @@ const ShoppingCartComponent = ({
     description?: string;
   }>({ type: null, message: '' })
 
-  console.log('clubId recibido:', clubId)
 
   // Obtener horarios del club
   const { data: schedulesData, isLoading: isLoadingSchedules } = useQuery({
@@ -82,7 +81,7 @@ const ShoppingCartComponent = ({
     enabled: !!clubId
   })
 
-  console.log('schedulesData:', schedulesData)
+
 
   // Generar horarios disponibles basados en el horario del club
   const generateAvailableTimes = (startTime: string, endTime: string) => {
@@ -100,61 +99,47 @@ const ShoppingCartComponent = ({
   // Función para deshabilitar fechas no disponibles
   const disabledDays = (date: Date) => {
     if (!schedulesData?.data?.data || isLoadingSchedules) {
-      console.log('No hay datos de horarios o están cargando');
+
       return false; // Permitimos todas las fechas mientras se cargan los datos
     }
 
     const jsDay = date.getDay();
     const dayOfWeek = jsDay === 0 ? 7 : jsDay;
-    
-    console.log('Fecha a verificar:', date);
-    console.log('Día de la semana (JS):', jsDay);
-    console.log('Día de la semana (Ajustado):', dayOfWeek);
-    console.log('Horarios disponibles:', schedulesData.data.data);
+  
     
     // Accedemos correctamente a los datos del array anidado
     const schedules = Array.isArray(schedulesData.data.data) ? schedulesData.data.data : [];
     
     const isDisabled = !schedules.some(
       (schedule: Schedule) => {
-        console.log('Comparando horario:', schedule);
-        console.log('¿Coincide el día?', schedule.dayOfWeek === dayOfWeek);
-        console.log('¿Está activo?', schedule.isActive);
         return schedule.dayOfWeek === dayOfWeek && schedule.isActive;
       }
     );
     
-    console.log('¿Está deshabilitada la fecha?', isDisabled);
     return isDisabled;
   }
 
   // Verificar disponibilidad cuando se selecciona una fecha
   useEffect(() => {
     if (date && schedulesData?.data?.data) {
-      console.log('Fecha seleccionada:', date);
-      console.log('Horarios disponibles:', schedulesData.data.data);
+    
       
       const jsDay = date.getDay();
       const dayOfWeek = jsDay === 0 ? 7 : jsDay;
       
-      console.log('Día de la semana (JS):', jsDay);
-      console.log('Día de la semana (Ajustado):', dayOfWeek);
       
       // Accedemos correctamente a los datos del array anidado
       const schedules = Array.isArray(schedulesData.data.data) ? schedulesData.data.data : [];
       
       const scheduleForDay = schedules.find(
         (schedule: Schedule) => {
-          console.log('Buscando horario para el día:', schedule);
           return schedule.dayOfWeek === dayOfWeek && schedule.isActive;
         }
       );
 
-      console.log('Horario encontrado:', scheduleForDay);
 
       if (scheduleForDay) {
         const times = generateAvailableTimes(scheduleForDay.startTime, scheduleForDay.endTime);
-        console.log('Horas generadas:', times);
         setAvailableTimes(times);
       } else {
         setAvailableTimes([]);

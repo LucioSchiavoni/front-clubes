@@ -8,6 +8,8 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useClubGramsLimits } from "@/hooks/useClubGramsLimits"
+import { GramsLimitControl } from "./GramsLimitControl"
 
 interface Product {
   id: string
@@ -99,6 +101,14 @@ export function FeaturedProductCard({ products, onAddToCart, onToggleFavorite, i
   if (!products.length) return null
 
   const currentProduct = products[currentSlide]
+  const clubId = currentProduct.clubId
+  const { data: gramsLimits } = useClubGramsLimits(clubId)
+  const minGrams = gramsLimits?.data?.minMonthlyGrams ?? 0
+  const maxGrams = gramsLimits?.data?.maxMonthlyGrams ?? 0
+  const isBelowMin = minGrams > 0 && quantity < minGrams
+  const isAboveMax = maxGrams > 0 && quantity > maxGrams
+  const isOutOfStock = currentProduct.stock === 0
+  const isInvalid = isBelowMin || isAboveMax || isOutOfStock
 
   return (
     <div className="relative w-full">
@@ -200,80 +210,35 @@ export function FeaturedProductCard({ products, onAddToCart, onToggleFavorite, i
           {/* Right Content - Cart Controls */}
           <div className="flex flex-col space-y-3 l sm:min-w-[200px]">
             {/* Quantity Control Card */}
-            <div className=" backdrop-blur-sm rounded-lg border border-gray-700/20 p-3">
+            <div className="backdrop-blur-sm rounded-lg border border-gray-700/20 p-3">
               <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2 text-center">CANTIDAD</div>
-
-              {/* Quick Increment Buttons */}
-              <div className="grid grid-cols-4 text-xl sm:grid-cols-2 gap-1 mb-2">
-                {[5, 10, 20, 40].map((value) => (
-                  <Button
-                    key={value}
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-1 text-xs text-white/80 hover:bg-white/10 border-0"
-                    onClick={() => handleQuantityChange(value)}
-                    disabled={value > currentProduct.stock}
-                  >
-                    +{value}g
-                  </Button>
-                ))}
-              </div>
-
-              {/* Manual Control */}
-              <div className="flex items-center justify-center space-x-2 mb-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-white/80 hover:bg-white/10 border border-gray-600/30 rounded"
-                  onClick={() => handleQuantityChange(quantity - 1)}
-                  disabled={quantity <= 1}
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
-                {isEditing ? (
-                  <Input
-                    type="number"
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onBlur={handleInputBlur}
-                    className="h-6 w-12 text-center text-xs bg-black/30 border border-gray-600/30 text-white/90 focus-visible:ring-1 focus-visible:ring-emerald-500"
-                    min={1}
-                    max={products[currentSlide].stock}
-                    autoFocus
-                  />
-                ) : (
-                  <span
-                    className="text-white/90 font-bold min-w-[1.5rem] text-center text-sm cursor-pointer hover:text-emerald-400 transition-colors px-1 py-0.5 border border-gray-600/30 rounded bg-black/20"
-                    onClick={handleQuantityClick}
-                  >
-                    {quantity}
-                  </span>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-white/80 hover:bg-white/10 border border-gray-600/30 rounded"
-                  onClick={() => handleQuantityChange(quantity + 1)}
-                  disabled={quantity >= currentProduct.stock}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-
+              <GramsLimitControl
+                minGrams={minGrams}
+                maxGrams={maxGrams}
+                stock={currentProduct.stock}
+                quantity={quantity}
+                setQuantity={setQuantity}
+              />
               {/* Total Price */}
               <div className="text-center mb-2 pb-2 border-b border-gray-700/20">
                 <div className="text-gray-400 text-xs">Total</div>
                 <div className="text-emerald-400 font-bold text-base">{formatPrice(currentProduct.price * quantity)}</div>
               </div>
-
               {/* Add to Cart Button */}
               <Button
                 onClick={handleAddToCart}
                 className="w-full bg-white/90 hover:bg-white text-black font-semibold py-1.5 px-3 rounded-lg transition-all duration-200 border-0 shadow-lg text-xs"
-                disabled={currentProduct.stock === 0}
+                disabled={isInvalid}
               >
                 <ShoppingCart className="w-3 h-3 mr-1" />
-                {currentProduct.stock === 0 ? "AGOTADO" : `AGREGAR ${quantity}G`}
+                {isOutOfStock
+                  ? "AGOTADO"
+                  : isBelowMin
+                    ? `MÍNIMO ${minGrams}G`
+                    : isAboveMax
+                      ? `MÁXIMO ${maxGrams}G`
+                      : `AGREGAR ${quantity}G`
+                }
               </Button>
             </div>
           </div>

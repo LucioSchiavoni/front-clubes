@@ -188,7 +188,6 @@ export const GramsConfig = ({ trigger, onSave }: GramsConfigModalProps) => {
   const onSubmit = async (data: GramsConfigForm) => {
     setIsLoading(true)
     try {
-        console.log(data)
       await gramsMutation.mutateAsync({
         ...(data.minGrams !== undefined && { minGrams: data.minGrams }),
         ...(data.maxGrams !== undefined && { maxGrams: data.maxGrams }),
@@ -210,7 +209,6 @@ export const GramsConfig = ({ trigger, onSave }: GramsConfigModalProps) => {
   }
 
   const handleFormSubmit = (data: any) => {
-    // data ya es del tipo GramsConfigForm (números)
     return onSubmit(data as GramsConfigForm)
   }
 

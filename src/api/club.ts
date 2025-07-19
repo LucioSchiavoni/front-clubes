@@ -58,16 +58,20 @@ export const updateClub = async(clubId: string, data: FormData | UpdateClub) => 
             ? { 'Content-Type': 'multipart/form-data' }
             : { 'Content-Type': 'application/json' }
 
-        console.log('Enviando actualización:', {
-            isFormData: data instanceof FormData,
-            headers,
-            data: data instanceof FormData ? 'FormData' : data
-        })
 
         const res = await instance.put(`/club/${clubId}`, data, { headers })
         return res.data;
     } catch (error) {
-        console.log('Error en updateClub:', error)
+        throw error
+    }
+}
+
+
+export const getGramsByClub = async(clubId: string) => {
+    try {
+        const res = await instance.get(`/club/${clubId}/grams`)
+        return res.data;
+    } catch (error) {
         throw error
     }
 }
