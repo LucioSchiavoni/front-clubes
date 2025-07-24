@@ -14,6 +14,7 @@ import {
   X,
   LogOut,
   Loader2,
+  Key,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -23,6 +24,7 @@ import { ThemeSwitch } from "../theme-switch"
 import { useAuthStore } from "@/store/auth"
 import { useNavigate } from "react-router-dom"
 import { useClub } from "@/hooks/useClub"
+import { ModalCambiarPassword } from "@/components/forms/ModalCambiarPassword"
 
 const navigationItems = [
   {
@@ -256,6 +258,20 @@ export default function ClubNavbar() {
                 Configuración
               </span>
             </Button>
+
+            <ModalCambiarPassword
+              trigger={
+                <Button
+                  variant="ghost"
+                  className={`w-full h-11 transition-all duration-200 ease-out rounded-xl ${isExpanded || isMobileOpen ? "justify-start px-3" : "justify-center px-0"} hover:bg-yellow-100/80 hover:text-yellow-700 hover:scale-[1.02] bg-transparent dark:hover:bg-yellow-900/30`}
+                >
+                  <Key className={`h-5 w-5 transition-all duration-200 ease-out ${isExpanded || isMobileOpen ? "mr-3" : ""}`} />
+                  <span className={`${isExpanded || isMobileOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 lg:hidden"} transition-all duration-200 ease-out`}>
+                    Cambiar contraseña
+                  </span>
+                </Button>
+              }
+            />
 
             <Button
               variant="ghost"

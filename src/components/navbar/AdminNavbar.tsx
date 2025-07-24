@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X, Loader2 } from "lucide-react"
+import { Search, TrendingUp, BarChart3, Heart, User, Settings, Wallet, Grid3X3, Menu, X, Loader2, Key } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { ThemeSwitch } from "../theme-switch"
 import { useAuthStore } from "@/store/auth"
 import { useNavigate } from "react-router-dom"
+import { ModalCambiarPassword } from "../forms/ModalCambiarPassword"
 
 const navigationItems = [
   {
@@ -185,6 +186,17 @@ export default function AdminNavbar() {
             <X className="h-5 w-5" />
             {isExpanded && <span className="ml-3">Cerrar sesión</span>}
           </Button>
+          <ModalCambiarPassword
+            trigger={
+              <Button
+                variant="ghost"
+                className={`w-full justify-start h-12 ${isExpanded ? 'px-4' : 'px-2 justify-center'} hover:bg-yellow-100/80 hover:text-yellow-700`}
+              >
+                <Key className="h-5 w-5" />
+                {isExpanded && <span className="ml-3">Cambiar contraseña</span>}
+              </Button>
+            }
+          />
         </div>
       </div>
     </div>

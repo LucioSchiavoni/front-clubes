@@ -39,3 +39,17 @@ export const getSociosRequest = async (clubId: string) => {
     throw error;
   }
 };
+
+export const changePasswordRequest = async (userId: string, currentPassword: string, newPassword: string) => {
+  try {
+    const response = await instance.patch("/change-password", {
+      userId,
+      currentPassword,
+      newPassword
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error en changePasswordRequest:', error);
+    throw error;
+  }
+}
