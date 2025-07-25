@@ -1,7 +1,5 @@
 "use client"
-
 import type React from "react"
-
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useForm } from "react-hook-form"
@@ -19,10 +17,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { Scale, Save, X, Loader2, CheckCircle2, AlertTriangle } from "lucide-react"
+import { Scale, Save, X, Loader2, CheckCircle2, AlertTriangle, Info, Settings } from "lucide-react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { createGramsClub } from "@/api/club"
 import { useClub } from "@/hooks/useClub"
+import { useClubGramsLimits } from "@/hooks/useClubGramsLimits"
 
 // Schema de validación
 const gramsConfigSchema = z
@@ -68,6 +67,7 @@ type GramsConfigFormInput = {
   minGrams?: string
   maxGrams?: string
 }
+
 type GramsConfigForm = z.infer<typeof gramsConfigSchema>
 
 interface GramsConfigModalProps {
@@ -150,17 +150,19 @@ export const GramsConfig = ({ trigger, onSave }: GramsConfigModalProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const { toast } = useToast()
-
+  
   const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<GramsConfigFormInput>({
     resolver: zodResolver(gramsConfigSchema) as any,
   })
-
+  
   const minGrams = watch("minGrams")
   const maxGrams = watch("maxGrams")
-
+  
   const { club } = useClub()
+  const { data: currentLimits, isLoading: limitsLoading } = useClubGramsLimits(club?.id)
+  
   const queryClient = useQueryClient()
-
+  
   const gramsMutation = useMutation({
     mutationFn: async (data: { minGrams?: number; maxGrams?: number }) => {
       if (!club?.id) throw new Error("No club id")
@@ -168,6 +170,7 @@ export const GramsConfig = ({ trigger, onSave }: GramsConfigModalProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["club"] })
+      queryClient.invalidateQueries({ queryKey: ["club-grams-limits"] })
     },
     onError: (error) => {
       toast({
@@ -212,6 +215,28 @@ export const GramsConfig = ({ trigger, onSave }: GramsConfigModalProps) => {
     return onSubmit(data as GramsConfigForm)
   }
 
+  // Función para formatear los límites actuales
+  const getCurrentLimitsText = () => {
+    if (!currentLimits?.data) return null
+    
+    const { minMonthlyGrams, maxMonthlyGrams } = currentLimits.data
+    
+    // Si ambos son 0 o falsy, no hay límites configurados
+    if (!minMonthlyGrams && !maxMonthlyGrams) return null
+    
+    if (minMonthlyGrams && maxMonthlyGrams) {
+      return `${minMonthlyGrams}gr - ${maxMonthlyGrams}gr`
+    } else if (minMonthlyGrams) {
+      return `Mínimo: ${minMonthlyGrams}gr`
+    } else if (maxMonthlyGrams) {
+      return `Máximo: ${maxMonthlyGrams}gr`
+    }
+    
+    return null
+  }
+
+  const currentLimitsText = getCurrentLimitsText()
+
   const defaultTrigger = (
     <Button
       variant="outline"
@@ -244,6 +269,53 @@ export const GramsConfig = ({ trigger, onSave }: GramsConfigModalProps) => {
                 </div>
               </DialogHeader>
 
+              {/* Aviso de límites actuales */}
+              <AnimatePresence>
+                {currentLimitsText && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, y: -10, height: 0 }}
+                    className="mb-6"
+                  >
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <Settings className="h-5 w-5 text-amber-600 mt-0.5" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-medium text-amber-800 mb-1">
+                            Límites actuales configurados
+                          </h4>
+                          <p className="text-sm text-amber-700">
+                            {currentLimitsText}
+                          </p>
+                          <p className="text-xs text-amber-600 mt-1">
+                            Los nuevos valores reemplazarán la configuración actual
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Loading de límites actuales */}
+              {limitsLoading && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mb-6"
+                >
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                      <span className="text-sm text-gray-600">Cargando límites actuales...</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               <motion.form
                 variants={formVariants}
                 initial="hidden"
@@ -264,7 +336,7 @@ export const GramsConfig = ({ trigger, onSave }: GramsConfigModalProps) => {
                       type="number"
                       step="0.1"
                       min="0"
-                      placeholder="Ej: 10.5"
+                      placeholder={currentLimits?.data?.minMonthlyGrams ? `Actual: ${currentLimits.data.minMonthlyGrams}` : "Ej: 10.5"}
                       className={`bg-background transition-all duration-200 ${
                         errors.minGrams ? "border-red-500 focus:ring-red-200" : "focus:ring-primary/20"
                       } ${isSuccess ? "border-green-500" : ""}`}
@@ -298,7 +370,7 @@ export const GramsConfig = ({ trigger, onSave }: GramsConfigModalProps) => {
                       type="number"
                       step="0.1"
                       min="0"
-                      placeholder="Ej: 100.0"
+                      placeholder={currentLimits?.data?.maxMonthlyGrams ? `Actual: ${currentLimits.data.maxMonthlyGrams}` : "Ej: 100.0"}
                       className={`bg-background transition-all duration-200 ${
                         errors.maxGrams ? "border-red-500 focus:ring-red-200" : "focus:ring-primary/20"
                       } ${isSuccess ? "border-green-500" : ""}`}
@@ -345,7 +417,10 @@ export const GramsConfig = ({ trigger, onSave }: GramsConfigModalProps) => {
                       exit={{ opacity: 0, y: -10 }}
                       className="p-3 bg-blue-50 border border-blue-200 rounded-lg"
                     >
-                      <p className="text-xs text-blue-700 font-medium mb-1">Vista previa:</p>
+                      <p className="text-xs text-blue-700 font-medium mb-1 flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        Vista previa de los nuevos límites:
+                      </p>
                       <div className="text-xs text-blue-600">
                         {minGrams && maxGrams
                           ? `Rango: ${minGrams}gr - ${maxGrams}gr`
@@ -374,7 +449,7 @@ export const GramsConfig = ({ trigger, onSave }: GramsConfigModalProps) => {
                       ) : (
                         <>
                           <Save className="h-4 w-4" />
-                          Guardar
+                          {currentLimitsText ? 'Actualizar' : 'Guardar'}
                         </>
                       )}
                     </Button>
