@@ -114,8 +114,9 @@ export default function Component() {
   const featuredProducts = filteredProducts.filter((p) => p.active)
   const allProducts = filteredProducts
 
-  const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0)
+  const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0) // Total de precio en euros
   const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0)
+  const cartGramsTotal = cart.reduce((total, item) => total + item.quantity, 0) // Total de gramos
 
   if (isLoading) {
     return (

@@ -7,14 +7,50 @@ export interface ReservationData {
   date: Date
   time: string
   comment?: string
-  total: number
+  total: number // Total de precio en euros (no gramos)
 }
 
-export const createOrder = async (data: ReservationData) => {
+export interface CreateOrderResponse {
+  success: boolean
+  message: string
+  data: any // Tipo de la orden creada
+  gramInfo: {
+    gramsReserved: number
+    availableAfterOrder: number
+    monthlyLimit: number
+  }
+}
+
+export interface LimitExceededError {
+  success: false
+  message: string
+  details: {
+    monthlyLimit: number
+    currentUsed: number
+    availableGrams: number
+    requestedGrams: number
+  }
+}
+
+export const createOrder = async (data: ReservationData): Promise<CreateOrderResponse> => {
   try {
     const res = await instance.post("/order", data)
     return res.data
-  } catch (error) {
+  } catch (error: any) {
+    // Manejar error específico de límite excedido
+    if (error.response?.status === 400 && error.response?.data?.success === false) {
+      const errorData: LimitExceededError = error.response.data
+      const errorMessage = errorData.message || 'Error de validación de límites'
+      
+      // Crear un error personalizado con información adicional
+      const customError = new Error(errorMessage) as any
+      customError.isLimitExceeded = true
+      customError.limitDetails = errorData.details
+      
+      throw customError
+    }
+    
+    // Error genérico
     throw new Error('Error al crear la reserva')
   }
 } 

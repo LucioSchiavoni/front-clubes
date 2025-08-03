@@ -65,6 +65,7 @@ const ShoppingCartComponent = ({
     type: 'success' | 'error' | null;
     message: string;
     description?: string;
+    details?: any;
   }>({ type: null, message: '' })
 
 
@@ -181,19 +182,32 @@ const ShoppingCartComponent = ({
         message: '¡Reserva creada exitosamente! 🎉',
         description: 'Tu pedido ha sido reservado correctamente.'
       })
-      setIsOpen(false)
-      setDate(undefined)
-      setTime(undefined)
-      setComment('')
-      cart.forEach(item => onRemoveItem(item.id))
-      queryClient.invalidateQueries({queryKey: ['orders']})
+      // Solo cerrar el carrito después de un delay para que el usuario vea el mensaje de éxito
+      setTimeout(() => {
+        setIsOpen(false)
+        setDate(undefined)
+        setTime(undefined)
+        setComment('')
+        cart.forEach(item => onRemoveItem(item.id))
+        queryClient.invalidateQueries({queryKey: ['orders']})
+      }, 2000) // 2 segundos de delay
     },
-    onError: (error) => {
-      setAlert({
-        type: 'error',
-        message: 'Error al crear la reserva',
-        description: error.message || 'Por favor, intenta nuevamente.'
-      })
+    onError: (error: any) => {
+      // Manejar error específico de límite excedido
+      if (error.isLimitExceeded) {
+        setAlert({
+          type: 'error',
+          message: 'Límite mensual excedido',
+          description: error.message,
+          details: error.limitDetails
+        })
+      } else {
+        setAlert({
+          type: 'error',
+          message: 'Error al crear la reserva',
+          description: error.message || 'Por favor, intenta nuevamente.'
+        })
+      }
     }
   })
 
@@ -223,31 +237,12 @@ const ShoppingCartComponent = ({
       comment,
       total: cartTotal
     }
+    
     submitReservation(reservationData)
   }
 
   return (
     <>
-      {alert.type && (
-        <div className={cn(
-          "fixed top-4 right-4 z-[70] p-4 rounded-lg shadow-lg max-w-md animate-in slide-in-from-top-5",
-          alert.type === 'success' ? 'bg-emerald-500/90 text-white' : 'bg-red-500/90 text-white'
-        )}>
-          <div className="flex items-start gap-3">
-            {alert.type === 'success' ? (
-              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            )}
-            <div>
-              <p className="font-medium">{alert.message}</p>
-              {alert.description && (
-                <p className="text-sm opacity-90 mt-1">{alert.description}</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button
@@ -270,6 +265,57 @@ const ShoppingCartComponent = ({
               <span>Carrito de Reservas</span>
             </SheetTitle>
           </SheetHeader>
+          
+          {/* Alerta dentro del modal */}
+          {alert.type && (
+            <div className={cn(
+              "mt-4 p-4 rounded-lg shadow-lg animate-in slide-in-from-top-5",
+              alert.type === 'success' ? 'bg-emerald-500/90 text-white' : 'bg-red-500/90 text-white'
+            )}>
+              <div className="flex items-start gap-3">
+                {alert.type === 'success' ? (
+                  <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                )}
+                <div className="flex-1">
+                  <p className="font-medium">{alert.message}</p>
+                  {alert.description && (
+                    <p className="text-sm opacity-90 mt-1">{alert.description}</p>
+                  )}
+                  {alert.details && (
+                    <div className="mt-2 p-2 bg-white/10 rounded text-xs">
+                      <p><strong>Límite mensual:</strong> {alert.details.monthlyLimit}g</p>
+                      <p><strong>Ya usado:</strong> {alert.details.currentUsed}g</p>
+                      <p><strong>Disponible:</strong> {alert.details.availableGrams}g</p>
+                      <p><strong>Solicitado:</strong> {alert.details.requestedGrams}g</p>
+                    </div>
+                  )}
+                  {alert.type === 'error' && (
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+                        onClick={() => setAlert({ type: null, message: '' })}
+                      >
+                        Entendido
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Cerrar carrito
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4 flex-1 overflow-y-auto pb-4">
             {cart.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">Tu carrito está vacío</p>
