@@ -49,11 +49,15 @@ export const createOrder = async (data: ReservationData): Promise<CreateOrderRes
       
       throw customError
     }
+
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
     
     // Error genérico
     throw new Error('Error al crear la reserva')
   }
-} 
+}
 
 export const getOrderByUserId = async(userId: string) => {
   try {
@@ -90,5 +94,14 @@ export const putCompleteOrder = async(orderId: string) => {
     return res.data
   } catch (error) {
     throw new Error('Error al cambiar el status de la orden')
+  }
+}
+
+export const cancelOrder = async(id: string) => {
+  try {
+    const res = await instance.put(`/order/${id}/cancel`)
+    return res.data
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Error al cancelar la orden')
   }
 }

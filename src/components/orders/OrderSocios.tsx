@@ -31,14 +31,16 @@ import {
   Hash,
   DollarSign,
   Loader2,
+  X,
 } from "lucide-react"
 import { useOrdersBySocio } from "@/hooks/useOrders"
 import { useAuthStore } from "@/store/auth"
 import type { Order } from "@/types/order"
 import { format, parseISO, formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
-import { useQuery } from "@tanstack/react-query"
-import { getOrderBySocioId } from "@/api/order"
+import { useMutation } from "@tanstack/react-query"
+import { cancelOrder } from "@/api/order"
+import { useToast } from '@/hooks/use-toast'
 
 export default function OrderHistory() {
   const { profile } = useAuthStore()
@@ -47,12 +49,33 @@ export default function OrderHistory() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [sortBy, setSortBy] = useState("newest")
+  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null)
 
-  const { data: orderDetails, isLoading: isLoadingDetails } = useQuery({
-    queryKey: ['order', selectedOrder?.id],
-    queryFn: () => getOrderBySocioId(profile?.data?.id || ''),
-    enabled: !!selectedOrder?.id,
-  })
+  const {toast} = useToast()
+
+  const cancelOrderMutation = useMutation({
+  mutationFn: async (orderId: string) => {
+    const response = await cancelOrder(orderId);
+    return response.data;
+  },
+  onSuccess: (data) => {
+    toast({
+      title: "Orden cancelada",
+      description: data.message,
+      variant: "default",
+    });
+    setOrderToCancel(null);
+  },
+  onError: (error: any) => {
+    const msg = error?.response?.data?.message || 'Ocurrió un error';
+    toast({
+      title: "Error",
+      description: msg,
+      variant: "destructive",
+    });
+  },
+});
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -161,6 +184,8 @@ export default function OrderHistory() {
     )
   }
 
+
+
   return (   
      <ScrollShadow hideScrollBar className="w-full h-[calc(100vh-12rem)]">
       <div className="space-y-4">
@@ -245,100 +270,139 @@ export default function OrderHistory() {
           {filteredAndSortedOrders.map((order: Order) => {
             const { formattedDate, formattedTime, timeAgo } = formatDate(order.dateOrder, order.hourOrder)
 
-  return (
+            return (
               <Card key={order.id} className="hover:shadow-lg transition-all duration-200 bg-background border-border">
-                <CardHeader className="pb-2">
-                  <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
-                    <Badge className={`${getStatusColor(order.status)} flex items-center gap-1 text-xs`}>
-                      {getStatusIcon(order.status)}
-                      {getStatusText(order.status)}
-                    </Badge>
-                    <div className="flex flex-col items-start sm:items-end gap-1 w-full sm:w-auto">
-                      <div className="flex items-center gap-2 text-xs text-white font-semibold">
-                        <Calendar className="h-3 w-3" />
-                        <span className="capitalize">{formattedDate}</span>
-                        <Clock className="h-3 w-3 ml-2" />
-                        <span>{formattedTime}</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {timeAgo}
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
+          <CardHeader className="pb-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+              <Badge className={`${getStatusColor(order.status)} flex items-center gap-1 text-xs`}>
+                {getStatusIcon(order.status)}
+                {getStatusText(order.status)}
+              </Badge>
+              <div className="flex flex-col items-start sm:items-end gap-1 w-full sm:w-auto">
+                <div className="flex items-center gap-2 text-xs text-white font-semibold">
+            <Calendar className="h-3 w-3" />
+            <span className="capitalize">{formattedDate}</span>
+            <Clock className="h-3 w-3 ml-2" />
+            <span>{formattedTime}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+            {timeAgo}
+                </div>
+              </div>
+            </div>
+          </CardHeader>
 
-                <CardContent className="p-3 pt-2 space-y-3">
-                  {/* Items */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                      <Package className="h-3 w-3" />
-                      Productos ({order.items.length})
-                    </h4>
-                    <div className="space-y-1 max-h-20 overflow-y-auto">
-                      {order.items.map((item: Order["items"][0]) => (
-                        <div
-                          key={item.id}
-                          className="flex justify-between items-center text-xs bg-card text-card-foreground rounded-lg p-2"
-                        >
-                          <span className="font-medium text-foreground truncate flex-1 mr-2">{item.product.name}</span>
-                          <div className="flex items-center gap-2 text-muted-foreground whitespace-nowrap">
-                            <span>{item.quantity}x</span>
-                            <span className="font-semibold">${item.product.price}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+          <CardContent className="p-3 pt-2 space-y-3">
+            {/* Items */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <Package className="h-3 w-3" />
+                Productos ({order.items.length})
+              </h4>
+              <div className="space-y-1 max-h-20 overflow-y-auto">
+                {order.items.map((item: Order["items"][0]) => (
+            <div
+              key={item.id}
+              className="flex justify-between items-center text-xs bg-card text-card-foreground rounded-lg p-2"
+            >
+              <span className="font-medium text-foreground truncate flex-1 mr-2">{item.product.name}</span>
+              <div className="flex items-center gap-2 text-muted-foreground whitespace-nowrap">
+                <span>{item.quantity}x</span>
+                <span className="font-semibold">${item.product.price}</span>
+              </div>
+            </div>
+                ))}
+              </div>
+            </div>
 
-                  {/* Comment */}
-                  {order.comment && (
-                    <>
-                      <Separator className="bg-border" />
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                          <MessageSquare className="h-3 w-3" />
-                          Comentario
-                        </h4>
-                        <p className="text-xs text-muted-foreground bg-card text-card-foreground rounded-lg p-2 italic">"{order.comment}"</p>
-                      </div>
-                    </>
+            {/* Comment */}
+            {order.comment && (
+              <>
+                <Separator className="bg-border" />
+                <div className="space-y-1">
+            <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <MessageSquare className="h-3 w-3" />
+              Comentario
+            </h4>
+            <p className="text-xs text-muted-foreground bg-card rounded-lg p-2 italic">"{order.comment}"</p>
+                </div>
+              </>
+            )}
+
+              <Separator className="bg-border" />
+  
+              {/* Total and Actions */}
+              <div className="flex justify-between items-center">
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-base font-bold text-emerald-600 dark:text-emerald-400">${order.total}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-7 px-2 border-border text-foreground hover:bg-accent hover:text-accent-foreground"
+                    onClick={() => setSelectedOrder(order)}
+                  >
+                    <Eye className="h-3 w-3" />
+                    <span className="ml-1 text-xs">Ver</span>
+                  </Button>
+                  {order.status === "PENDING" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 border-border text-foreground hover:bg-accent hover:text-accent-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setOrderToCancel(order)
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                      <span className="ml-1 text-xs">Cancelar orden</span>
+                    </Button>
                   )}
-
-                  <Separator className="bg-border" />
-
-                  {/* Total and Actions */}
-                  <div className="flex justify-between items-center">
-                    <div className="text-right">
-                      <p className="text-xs text-muted-foreground">Total</p>
-                      <p className="text-base font-bold text-emerald-600 dark:text-emerald-400">${order.total}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-7 px-2 border-border text-foreground hover:bg-accent hover:text-accent-foreground"
-                        onClick={() => setSelectedOrder(order)}
-                      >
-                        <Eye className="h-3 w-3" />
-                        <span className="ml-1 text-xs">Ver</span>
-                      </Button>
-                      {order.status === "COMPLETED" && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-7 px-2 border-border text-foreground hover:bg-accent hover:text-accent-foreground"
-                        >
-                          <RotateCcw className="h-3 w-3" />
-                          <span className="ml-1 text-xs">Reordenar</span>
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
             )
           })}
         </div>
+
+        {/* Cancel Order Dialog */}
+        <Dialog
+          open={!!orderToCancel}
+          onOpenChange={(open) => {
+            if (!open) setOrderToCancel(null)
+          }}
+        >
+          <DialogContent className="max-w-xs bg-background border-border p-4">
+            <DialogHeader>
+              <DialogTitle>¿Cancelar pedido?</DialogTitle>
+              <DialogDescription>
+          ¿Estás seguro que deseas cancelar esta orden? Esta acción no se puede deshacer.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setOrderToCancel(null)}
+          className="border-border"
+              >
+          No, volver
+              </Button>
+              <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => cancelOrderMutation.mutate(orderToCancel?.id || "")}
+              disabled={cancelOrderMutation.isPending}
+              >
+              {cancelOrderMutation.isPending ? 'Cancelando...' : 'Cancelar orden'}
+            </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Order Details Dialog */}
         <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
@@ -351,7 +415,7 @@ export default function OrderHistory() {
                   </DialogTitle>
                 </DialogHeader>
 
-                {isLoadingDetails ? (
+                {isLoadingOrders ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-8 w-8 animate-spin text-emerald-600 dark:text-emerald-400" />
                   </div>
@@ -440,7 +504,7 @@ export default function OrderHistory() {
                           <MessageSquare className="h-4 w-4" />
                           Comentario
                         </h4>
-                        <p className="text-sm text-muted-foreground bg-card text-card-foreground rounded-lg p-3 italic">
+                        <p className="text-sm text-muted-foreground bg-card  rounded-lg p-3 italic">
                           "{selectedOrder.comment}"
                         </p>
                       </div>
